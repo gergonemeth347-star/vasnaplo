@@ -1,0 +1,1527 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101317">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vasnapló">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+</style>
+<title>Vasnapló</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column like a gym logbook page; bottom tab bar between Áttekintés and Edzések; fixed action bar during a workout. Single dark look by choice. */
+:root {
+  --bg: #101317;
+  --surface: #181d23;
+  --surface-2: #222932;
+  --line: #2c343e;
+  --fg: #eef1f4;
+  --muted: #8d98a5;
+  --accent: #f2c230;
+  --on-accent: #17140a;
+  --danger: #ef5a5f;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "Barlow", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --radius: 14px;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--fg); }
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+.wrap {
+  max-width: 560px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px calc(104px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.wrap.has-bar { padding-block-end: calc(130px + env(safe-area-inset-bottom, 0px)); }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+h1, h2 { font-family: var(--font-display); font-weight: 700; margin: 0; text-wrap: balance; }
+h1 { font-size: 2.3rem; line-height: 1.05; }
+h2 { font-size: 1.35rem; letter-spacing: 0.02em; text-transform: uppercase; }
+.muted { color: var(--muted); }
+.head { display: flex; flex-direction: column; gap: 4px; }
+.sec { display: flex; flex-direction: column; gap: 10px; }
+.sec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+.btn {
+  min-height: 56px;
+  padding: 0 20px;
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-primary:active { filter: brightness(0.9); }
+.btn-ghost { background: var(--surface-2); color: var(--fg); }
+.btn-danger-ghost { background: transparent; color: var(--danger); border: 1.5px solid var(--line); }
+.btn-danger-ghost[data-armed="1"] { background: var(--danger); color: var(--bg); border-color: var(--danger); }
+.btn-block { width: 100%; min-height: 68px; font-size: 1.5rem; }
+.btn-small { min-height: 44px; font-size: 1.05rem; padding: 0 14px; }
+
+.start-card, .active-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.active-card { border: 1.5px solid var(--accent); }
+.start-sub { color: var(--muted); font-size: 0.92rem; }
+.day-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.day-row .btn { min-height: 50px; font-size: 1.1rem; padding: 0 8px; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 12px;
+  min-width: 0;
+}
+.stat b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.stat span { font-size: 0.8rem; color: var(--muted); line-height: 1.25; display: block; }
+
+.chart-card { background: var(--surface); border-radius: var(--radius); padding: 14px 14px 10px; display: flex; flex-direction: column; gap: 8px; }
+.readout { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.readout b { font-family: var(--font-display); font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.readout span { color: var(--muted); font-size: 0.88rem; }
+.chart { width: 100%; min-width: 0; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font-family: var(--font-body); font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .bar { fill: var(--accent); opacity: 0.45; }
+.chart .bar.sel { opacity: 1; }
+.chart .line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .area { fill: var(--accent); opacity: 0.08; }
+.chart .dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.chart .dot.sel { r: 6; }
+.chart .hit { fill: transparent; cursor: pointer; }
+.chart .end-label { fill: var(--fg); font-weight: 600; font-size: 12px; }
+.chart-hint { font-size: 0.78rem; color: var(--muted); }
+
+select {
+  min-height: 44px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 0 12px;
+  font-size: 1rem;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.list { display: flex; flex-direction: column; gap: 8px; }
+.row {
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  align-items: center;
+}
+button.row:active { background: var(--surface-2); }
+.row-title { font-weight: 600; font-size: 1.05rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-width: 0; }
+.row-sub { grid-column: 1; color: var(--muted); font-size: 0.9rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-vol {
+  grid-column: 2; grid-row: 1 / span 2;
+  font-family: var(--font-display); font-weight: 700; font-size: 1.3rem;
+  font-variant-numeric: tabular-nums; text-align: right;
+}
+.row-vol small { display: block; font-family: var(--font-body); font-weight: 400; font-size: 0.75rem; color: var(--muted); }
+.chip {
+  font-family: var(--font-body);
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 99px; border: 1px solid var(--muted); color: var(--muted);
+  white-space: nowrap;
+}
+.chip-day { border-color: var(--accent); color: var(--accent); }
+.empty { background: var(--surface); border-radius: var(--radius); padding: 20px; color: var(--muted); text-align: center; }
+.note { font-size: 0.85rem; color: var(--muted); margin: 0; }
+
+.pr { background: var(--surface); border-radius: var(--radius); }
+.pr-row { display: flex; justify-content: space-between; gap: 12px; padding: 11px 14px; border-top: 1px solid var(--line); align-items: baseline; }
+.pr-row:first-child { border-top: 0; }
+.pr-name { min-width: 0; overflow-wrap: anywhere; }
+.pr-val { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pr-val b { font-family: var(--font-display); font-size: 1.2rem; }
+.pr-val small { display: block; color: var(--muted); font-size: 0.75rem; }
+
+/* Tab bar */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  padding-top: 6px;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.tabs-inner { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.tab { font-size: 0.78rem; min-width: 0; }
+
+/* Szálkásítás */
+.stats-2 { grid-template-columns: repeat(2, 1fr); }
+.weigh { background: var(--surface); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.weigh-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.weigh-row > * { min-width: 0; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.field input[type="date"], .field .num { background: var(--surface-2); border-color: transparent; }
+.goal-row { display: flex; gap: 8px; align-items: flex-end; }
+.goal-row .field { flex: 1; }
+.goal-row .num { font-size: 1.3rem; min-height: 56px; }
+.goal-row .btn { flex: none; }
+.field input[type="date"] { min-height: 56px; font-size: 1.05rem; padding: 0 10px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.sw-line { width: 16px; height: 2px; border-radius: 1px; background: var(--accent); }
+.chart .wdot { fill: var(--muted); stroke: var(--surface); stroke-width: 1.5; }
+.chart .wdot.sel { fill: var(--fg); }
+.delta { color: var(--muted); font-size: 0.8rem; }
+.entry { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 6px 6px 14px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.entry:first-child { border-top: 0; }
+.entry b { font-family: var(--font-display); font-size: 1.2rem; }
+.entry-right { display: flex; align-items: center; gap: 6px; }
+.data-box {
+  width: 100%; min-height: 96px; resize: vertical;
+  background: var(--surface-2); color: var(--fg);
+  border: 1.5px solid transparent; border-radius: 12px;
+  padding: 10px 12px; font: 0.8rem/1.4 ui-monospace, Menlo, Consolas, monospace;
+}
+.data-box:focus { border-color: var(--accent); outline: none; }
+.tab {
+  min-height: 58px; border-radius: 12px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: var(--muted); font-weight: 600; font-size: 0.85rem;
+}
+.tab svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tab[aria-current="page"] { color: var(--accent); background: var(--surface); }
+
+/* Workout view */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.back { min-height: 44px; padding: 0 4px; color: var(--muted); font-weight: 600; }
+.date-field { display: flex; flex-direction: column; gap: 6px; }
+.date-field label { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+input[type="date"], .text-input {
+  min-height: 56px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0 14px;
+  font-size: 1.1rem;
+  width: 100%;
+  min-width: 0;
+}
+input:focus { border-color: var(--accent); outline: none; }
+
+.ex {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ex-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.ex-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ex-name { font-family: var(--font-display); font-weight: 700; font-size: 1.45rem; line-height: 1.1; overflow-wrap: anywhere; }
+.ex-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.ex-note { font-size: 0.85rem; color: var(--muted); }
+.last { font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.last b { color: var(--fg); font-weight: 600; }
+.sets { display: flex; flex-direction: column; gap: 8px; }
+.set {
+  display: grid;
+  grid-template-columns: 28px 1fr 18px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+}
+.set-n { font-family: var(--font-display); font-weight: 700; color: var(--muted); font-size: 1.1rem; text-align: center; font-variant-numeric: tabular-nums; }
+.num-wrap { position: relative; min-width: 0; }
+.num {
+  width: 100%;
+  min-height: 56px;
+  background: var(--surface-2);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.6rem;
+  text-align: center;
+  padding: 0 34px 0 10px;
+  font-variant-numeric: tabular-nums;
+}
+.num::placeholder { color: #47515d; font-size: 1.2rem; }
+.unit { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--muted); pointer-events: none; }
+.times { text-align: center; color: var(--muted); font-weight: 600; }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: 12px; flex: none;
+  display: grid; place-items: center;
+  color: var(--muted); font-size: 1.4rem; line-height: 1;
+}
+.icon-btn:active { background: var(--surface-2); }
+.icon-btn[data-armed="1"] { background: var(--danger); color: var(--bg); }
+.add-set { border: 1.5px dashed var(--line); background: transparent; color: var(--fg); }
+
+.add-ex { display: flex; gap: 8px; }
+.add-ex .btn { flex: none; }
+
+.bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  z-index: 5;
+}
+.bar-inner { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.bar-vol { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--muted); }
+.bar-vol b { color: var(--fg); font-variant-numeric: tabular-nums; }
+.bar-btns { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+
+/* Detail */
+.d-sets { display: flex; flex-direction: column; }
+.d-set {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 8px 0; border-top: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+.d-set:first-child { border-top: 0; }
+.d-set b { font-family: var(--font-display); font-size: 1.3rem; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  background: var(--fg);
+  color: var(--bg);
+  font-weight: 600;
+  padding: 12px 18px;
+  border-radius: 99px;
+  z-index: 20;
+  max-width: calc(100% - 32px);
+  text-align: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toast { animation: rise 0.2s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } }
+}
+@media (max-width: 360px) {
+  .stat b { font-size: 1.5rem; }
+}
+
+/* Közös: pontok és jutalmak */
+.modal-back { position: fixed; inset: 0; z-index: 40; background: rgba(5, 4, 8, 0.72); display: flex; align-items: center; justify-content: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.modal { width: 100%; max-width: 400px; background: var(--surface); border: 1.5px solid var(--accent); border-radius: 20px; padding: 22px 18px 18px; display: flex; flex-direction: column; gap: 10px; }
+.modal h2 { font-size: 1.5rem; line-height: 1.15; text-transform: none; letter-spacing: 0; }
+.modal-icon { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; color: var(--accent); }
+.modal-icon svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.modal-btns { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-top: 6px; }
+@media (prefers-reduced-motion: no-preference) {
+  .modal { animation: pop 0.22s ease-out; }
+  @keyframes pop { from { opacity: 0; transform: translateY(12px) scale(0.97); } }
+}
+.sc-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sc-card { background: var(--surface); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sc-card.me { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.sc-name { font-size: 0.85rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc-pts { font-family: var(--font-display); font-weight: 700; font-size: 2.2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.sc-pts small { font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; color: var(--muted); }
+.dots { display: flex; gap: 6px; align-items: center; font-size: 0.8rem; color: var(--muted); }
+.dots i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--accent); }
+.dots i.on { background: var(--accent); }
+.dots span { margin-left: 4px; }
+.reward { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 10px 10px 14px; border-top: 1px solid var(--line); }
+.reward:first-child { border-top: 0; }
+.reward-txt { min-width: 0; display: flex; flex-direction: column; }
+.reward-txt b { font-weight: 600; }
+.reward-txt small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.reward-desc { color: var(--muted); font-size: 0.85rem; line-height: 1.35; margin-top: 2px; }
+.reward-txt small.reward-cost { color: var(--accent); font-weight: 600; margin-top: 4px; }
+.reward-txt { gap: 0; }
+.reward .btn { flex: none; min-width: 108px; }
+.reward .btn:disabled { opacity: 0.4; cursor: default; }
+.todo { background: var(--surface); border: 1.5px solid var(--accent); border-radius: var(--radius); }
+.feed-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 0.92rem; }
+.feed-row:first-child { border-top: 0; }
+.feed-row span:first-child { min-width: 0; }
+.feed-row time { color: var(--muted); font-size: 0.8rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.feed-pts { color: var(--accent); font-weight: 600; white-space: nowrap; }
+.sync { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.82rem; color: var(--muted); }
+.sync .btn { min-height: 40px; font-size: 0.95rem; }
+</style>
+</head>
+<body>
+
+
+<div id="app"></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<datalist id="ex-names"></datalist>
+
+<script>
+(function () {
+  var KEY = 'vasnaplo.v1';
+
+  /* Edzésterv: név, sorozatszám, ismétlés-tartomány, megjegyzés */
+  var PLAN = {
+    A: [
+      ['Guggolás', 4, '6–8'],
+      ['Fekvenyomás', 3, '6–8'],
+      ['Evezés', 3, '8–10'],
+      ['Lábhajlítás gépen', 3, '10–12'],
+      ['Oldalemelés', 4, '12–15'],
+      ['Bicepsz hajlítás', 3, '10–12']
+    ],
+    B: [
+      ['Vállból nyomás', 3, '8–10'],
+      ['Lehúzás széles fogással', 3, '8–12'],
+      ['Bolgár guggolás', 3, '10', 'Lábanként'],
+      ['Tárogatás', 3, '12–15', 'Gépen vagy kábelen'],
+      ['Tricepsz letolás kábelen', 3, '10–12']
+    ],
+    C: [
+      ['Lábtoló', 3, '10–12'],
+      ['Ferde pados nyomás kézisúlyzóval', 4, '8–10'],
+      ['Húzódzkodás', 3, '6–10', 'Vagy szűk fogású lehúzás'],
+      ['Evezés', 3, '10–12'],
+      ['Lábhajlítás gépen', 3, '10–12'],
+      ['Oldalemelés', 4, '12–15'],
+      ['Kalapács bicepsz', 3, '10–12', 'Szuperszett: felváltva a tricepsz nyújtással, kevés pihenővel', true],
+      ['Fej fölötti tricepsz nyújtás kötéllel', 3, '10–12', 'Szuperszett: felváltva a kalapács bicepsszel', true]
+    ]
+  };
+  var DAYS = ['A', 'B', 'C'];
+
+  var storageOk = true;
+  var view = 'home';
+  var detailId = null;
+  var selWeek = null;
+  var selPoint = null;
+  var pickedEx = null;
+  var app = document.getElementById('app');
+
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function isoDate(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function parseIso(iso) { var p = iso.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function today() { return isoDate(new Date()); }
+  function daysAgo(n) { var d = new Date(); d.setDate(d.getDate() - n); return isoDate(d); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function num(v) { if (v === '' || v == null) return NaN; return parseFloat(String(v).replace(',', '.')); }
+  function fmtN(v) { return (Math.round(v * 10) / 10).toLocaleString('hu-HU'); }
+  function fmtKg(v) { return Math.round(v).toLocaleString('hu-HU') + ' kg'; }
+  function fmtDate(iso, opts) { return parseIso(iso).toLocaleDateString('hu-HU', opts || { month: 'short', day: 'numeric', weekday: 'long' }); }
+  function shortDate(iso) { return parseIso(iso).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }); }
+  function mondayOf(iso) { var d = parseIso(iso); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return isoDate(d); }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var s = JSON.parse(raw);
+        if (s && Array.isArray(s.workouts)) {
+          s.workouts = s.workouts.filter(function (w) { return !w.example; });
+          if (!Array.isArray(s.weights)) s.weights = [];
+          if (typeof s.goal !== 'number') s.goal = null;
+          if (!s.social) s.social = { name: '', outbox: [], events: [], lastSync: 0, error: '', seen: [] };
+          if (!Array.isArray(s.social.seen)) s.social.seen = [];
+          if (s.active) s.active.exercises.forEach(function (ex) { delete ex.target; delete ex.reps; });
+          return s;
+        }
+      }
+    } catch (e) { storageOk = false; }
+    return { workouts: [], active: null, weights: [], goal: null, social: { name: '', outbox: [], events: [], lastSync: 0, error: '', seen: [] } };
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); storageOk = true; }
+    catch (e) { storageOk = false; }
+  }
+  var state = load();
+  save();
+
+  /* Példa adatok a grafikonokhoz, amíg nincs saját edzés (nem mentődik el) */
+  var BASE = {
+    'Guggolás': 70, 'Fekvenyomás': 60, 'Evezés': 50, 'Lábhajlítás gépen': 35, 'Oldalemelés': 8, 'Bicepsz hajlítás': 12,
+    'Vállból nyomás': 35, 'Lehúzás széles fogással': 50, 'Bolgár guggolás': 14, 'Tárogatás': 30, 'Tricepsz letolás kábelen': 22,
+    'Lábtoló': 120, 'Ferde pados nyomás kézisúlyzóval': 22, 'Húzódzkodás': 0, 'Kalapács bicepsz': 12, 'Fej fölötti tricepsz nyújtás kötéllel': 18
+  };
+  function sampleWorkouts() {
+    var out = [];
+    var n = 14;
+    for (var i = 0; i < n; i++) {
+      var day = DAYS[i % 3];
+      var ago = Math.round((n - 1 - i) * 3.5) + 1;
+      var prog = i / 3;
+      out.push({
+        id: 'minta' + i, date: daysAgo(ago), day: day, savedAt: i,
+        exercises: PLAN[day].map(function (p, j) {
+          var base = BASE[p[0]] || 20;
+          var kg = base === 0 ? 0 : Math.round((base * (1 + prog * 0.035)) / 2.5) * 2.5;
+          var reps = parseInt(p[2], 10) + ((i + j) % 2);
+          var sets = [];
+          for (var k = 0; k < p[1]; k++) sets.push({ kg: String(kg), reps: String(base === 0 ? 6 + Math.floor(prog) - (k > 1 ? 1 : 0) : reps - (k > 1 ? 1 : 0)) });
+          return { id: 'm' + i + j, name: p[0], sets: sets };
+        })
+      });
+    }
+    return out;
+  }
+
+  function volume(w) {
+    var v = 0;
+    w.exercises.forEach(function (ex) {
+      ex.sets.forEach(function (s) { var k = num(s.kg), r = num(s.reps); if (!isNaN(k) && !isNaN(r)) v += k * r; });
+    });
+    return v;
+  }
+  function setCount(w) { return w.exercises.reduce(function (a, ex) { return a + ex.sets.length; }, 0); }
+  function sortedDesc(list) {
+    return list.slice().sort(function (a, b) {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return (b.savedAt || 0) - (a.savedAt || 0);
+    });
+  }
+  function nextDay() {
+    var last = sortedDesc(state.workouts).filter(function (w) { return w.day; })[0];
+    if (!last) return 'A';
+    return DAYS[(DAYS.indexOf(last.day) + 1) % 3];
+  }
+  function lastSetsFor(name) {
+    var ws = sortedDesc(state.workouts);
+    for (var i = 0; i < ws.length; i++) {
+      for (var j = 0; j < ws[i].exercises.length; j++) {
+        if (ws[i].exercises[j].name === name) return { date: ws[i].date, sets: ws[i].exercises[j].sets };
+      }
+    }
+    return null;
+  }
+
+  var toastTimer;
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 2200);
+  }
+
+  function fillDatalist() {
+    var names = {};
+    DAYS.forEach(function (d) { PLAN[d].forEach(function (p) { names[p[0]] = 1; }); });
+    state.workouts.forEach(function (w) { w.exercises.forEach(function (ex) { names[ex.name] = 1; }); });
+    document.getElementById('ex-names').innerHTML = Object.keys(names).map(function (n) { return '<option value="' + esc(n) + '">'; }).join('');
+  }
+
+  /* ---------- Statisztika ---------- */
+  function weeklyData(list) {
+    var thisMon = mondayOf(today());
+    var weeks = [];
+    for (var i = 7; i >= 0; i--) {
+      var d = parseIso(thisMon); d.setDate(d.getDate() - i * 7);
+      weeks.push({ key: isoDate(d), value: 0, count: 0 });
+    }
+    list.forEach(function (w) {
+      var k = mondayOf(w.date);
+      weeks.forEach(function (wk) { if (wk.key === k) { wk.value += volume(w); wk.count++; } });
+    });
+    return weeks;
+  }
+  function progressFor(list, name) {
+    var pts = [];
+    list.slice().reverse().forEach(function (w) {
+      w.exercises.forEach(function (ex) {
+        if (ex.name !== name) return;
+        var topKg = -1, topReps = 0;
+        ex.sets.forEach(function (s) {
+          var k = num(s.kg), r = num(s.reps);
+          if (isNaN(k)) k = 0;
+          if (isNaN(r)) r = 0;
+          if (k > topKg || (k === topKg && r > topReps)) { topKg = k; topReps = r; }
+        });
+        if (topKg >= 0) pts.push({ date: w.date, kg: topKg, reps: topReps });
+      });
+    });
+    return pts.slice(-12);
+  }
+  function exerciseNames(list) {
+    var count = {};
+    list.forEach(function (w) { w.exercises.forEach(function (ex) { count[ex.name] = (count[ex.name] || 0) + 1; }); });
+    var order = [];
+    DAYS.forEach(function (d) { PLAN[d].forEach(function (p) { if (count[p[0]] && order.indexOf(p[0]) < 0) order.push(p[0]); }); });
+    Object.keys(count).forEach(function (n) { if (order.indexOf(n) < 0) order.push(n); });
+    return order;
+  }
+  function records(list) {
+    var best = {};
+    list.forEach(function (w) {
+      w.exercises.forEach(function (ex) {
+        ex.sets.forEach(function (s) {
+          var k = num(s.kg), r = num(s.reps);
+          if (isNaN(k)) k = 0;
+          if (isNaN(r)) r = 0;
+          var b = best[ex.name];
+          if (!b || k > b.kg || (k === b.kg && r > b.reps)) best[ex.name] = { kg: k, reps: r, date: w.date };
+        });
+      });
+    });
+    return exerciseNames(list).map(function (n) { return { name: n, rec: best[n] }; }).filter(function (x) { return x.rec; });
+  }
+
+  /* ---------- Grafikonok (SVG) ---------- */
+  function niceStep(x) {
+    if (x <= 0) return 1;
+    var e = Math.pow(10, Math.floor(Math.log10(x)));
+    var f = x / e;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e;
+  }
+  function tickLabel(v) { return v >= 10000 ? fmtN(v / 1000) + 'e' : fmtN(v); }
+  function roundTopRect(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h);
+    if (h <= 0) return '';
+    return 'M' + x + ',' + (y + h) + 'V' + (y + r) + 'Q' + x + ',' + y + ' ' + (x + r) + ',' + y + 'H' + (x + w - r) + 'Q' + (x + w) + ',' + y + ' ' + (x + w) + ',' + (y + r) + 'V' + (y + h) + 'Z';
+  }
+
+  function drawWeekly(el, weeks) {
+    var W = Math.max(260, el.clientWidth || 320), H = 170, L = 40, R = 6, T = 10, B = 24;
+    var pw = W - L - R, ph = H - T - B;
+    var max = Math.max.apply(null, weeks.map(function (w) { return w.value; }));
+    var step = niceStep((max || 1) / 3);
+    var top = Math.ceil((max || 1) / step) * step;
+    var y = function (v) { return T + ph - (v / top) * ph; };
+    var slot = pw / weeks.length, bw = Math.min(30, slot - 8);
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Heti össztömeg az elmúlt 8 hétben">';
+    for (var t = 0; t <= top + 0.001; t += step) {
+      s += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(t) + '" y2="' + y(t) + '"/>';
+      s += '<text x="' + (L - 6) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + tickLabel(t) + '</text>';
+    }
+    var every = slot < 44 ? 2 : 1;
+    weeks.forEach(function (wk, i) {
+      var x = L + slot * i + (slot - bw) / 2;
+      var h = (wk.value / top) * ph;
+      var sel = i === selWeek;
+      if (wk.value > 0) s += '<path class="bar' + (sel ? ' sel' : '') + '" d="' + roundTopRect(x, T + ph - h, bw, h, 4) + '"/>';
+      if ((weeks.length - 1 - i) % every === 0) s += '<text x="' + (x + bw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + esc(shortDate(wk.key).replace(/\.$/, '')) + '</text>';
+      s += '<rect class="hit" data-act="week" data-i="' + i + '" x="' + (L + slot * i) + '" y="' + T + '" width="' + slot + '" height="' + ph + '"><title>' + esc(shortDate(wk.key)) + ': ' + fmtKg(wk.value) + '</title></rect>';
+    });
+    s += '</svg>';
+    el.innerHTML = s;
+  }
+
+  function drawProgress(el, pts) {
+    var W = Math.max(260, el.clientWidth || 320), H = 170, L = 40, R = 40, T = 14, B = 24;
+    var pw = W - L - R, ph = H - T - B;
+    var useReps = pts.every(function (p) { return p.kg === 0; });
+    var vals = pts.map(function (p) { return useReps ? p.reps : p.kg; });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    var step = niceStep(Math.max(hi - lo, hi * 0.1, 1) / 3);
+    var min = Math.max(0, Math.floor((lo - step * 0.5) / step) * step);
+    var max = Math.ceil((hi + step * 0.3) / step) * step;
+    if (max <= min) max = min + step;
+    var x = function (i) { return pts.length === 1 ? L + pw / 2 : L + (i / (pts.length - 1)) * pw; };
+    var y = function (v) { return T + ph - ((v - min) / (max - min)) * ph; };
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Legnagyobb súly alakulása edzésenként">';
+    for (var t = min; t <= max + 0.001; t += step) {
+      s += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(t) + '" y2="' + y(t) + '"/>';
+      s += '<text x="' + (L - 6) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + tickLabel(t) + '</text>';
+    }
+    var d = '';
+    vals.forEach(function (v, i) { d += (i ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(v).toFixed(1); });
+    if (pts.length > 1) {
+      s += '<path class="area" d="' + d + 'L' + x(pts.length - 1).toFixed(1) + ',' + (T + ph) + 'L' + x(0).toFixed(1) + ',' + (T + ph) + 'Z"/>';
+      s += '<path class="line" d="' + d + '"/>';
+    }
+    var sel = selPoint == null || selPoint >= pts.length ? pts.length - 1 : selPoint;
+    vals.forEach(function (v, i) {
+      s += '<circle class="dot' + (i === sel ? ' sel' : '') + '" cx="' + x(i).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="' + (i === sel ? 6 : 4) + '"/>';
+    });
+    var lastV = vals[vals.length - 1];
+    s += '<text class="end-label" x="' + (x(pts.length - 1) + 9) + '" y="' + (y(lastV) + 4) + '">' + fmtN(lastV) + '</text>';
+    s += '<text x="' + x(0) + '" y="' + (H - 6) + '" text-anchor="' + (pts.length === 1 ? 'middle' : 'start') + '">' + esc(shortDate(pts[0].date).replace(/\.$/, '')) + '</text>';
+    if (pts.length > 1) s += '<text x="' + x(pts.length - 1) + '" y="' + (H - 6) + '" text-anchor="end">' + esc(shortDate(pts[pts.length - 1].date).replace(/\.$/, '')) + '</text>';
+    var hw = pts.length === 1 ? pw : pw / (pts.length - 1);
+    pts.forEach(function (p, i) {
+      s += '<rect class="hit" data-act="point" data-i="' + i + '" x="' + (x(i) - hw / 2) + '" y="' + T + '" width="' + hw + '" height="' + ph + '"><title>' + esc(shortDate(p.date)) + ': ' + fmtN(p.kg) + ' kg × ' + p.reps + '</title></rect>';
+    });
+    s += '</svg>';
+    el.innerHTML = s;
+    return { useReps: useReps, sel: sel };
+  }
+
+  function drawCharts() {
+    var src = chartSource();
+    var wEl = document.getElementById('chart-week');
+    if (wEl) {
+      var weeks = weeklyData(src.list);
+      if (selWeek == null) selWeek = weeks.length - 1;
+      drawWeekly(wEl, weeks);
+      var wk = weeks[selWeek];
+      var end = parseIso(wk.key); end.setDate(end.getDate() + 6);
+      document.getElementById('week-val').textContent = fmtKg(wk.value);
+      document.getElementById('week-lbl').textContent = shortDate(wk.key) + ' – ' + shortDate(isoDate(end)) + ' · ' + wk.count + ' edzés';
+    }
+    var pEl = document.getElementById('chart-prog');
+    if (pEl && pickedEx) {
+      var pts = progressFor(src.list, pickedEx);
+      if (!pts.length) { pEl.innerHTML = ''; return; }
+      var info = drawProgress(pEl, pts);
+      var p = pts[info.sel];
+      document.getElementById('prog-val').textContent = info.useReps ? p.reps + ' ismétlés' : fmtN(p.kg) + ' kg × ' + p.reps;
+      document.getElementById('prog-lbl').textContent = fmtDate(p.date, { month: 'short', day: 'numeric' }) + ' · legjobb sorozat';
+    }
+  }
+
+  function chartSource() {
+    return state.workouts.length ? { list: sortedDesc(state.workouts), sample: false } : { list: sortedDesc(sampleWorkouts()), sample: true };
+  }
+
+  /* ---------- Nézetek ---------- */
+  function tabBar(active) {
+    var dumb = '<svg viewBox="0 0 24 24"><path d="M3 12h18M6 8v8M3 10v4M18 8v8M21 10v4"/></svg>';
+    var listI = '<svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>';
+    var scaleI = '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 9a5 5 0 0 1 8 0M12 9.5l1.5-2"/></svg>';
+    return '<nav class="tabs" aria-label="Fülek"><div class="tabs-inner">' +
+      '<button class="tab" data-act="tab-home"' + (active === 'home' ? ' aria-current="page"' : '') + '>' + dumb + 'Áttekintés</button>' +
+      '<button class="tab" data-act="tab-history"' + (active === 'history' ? ' aria-current="page"' : '') + '>' + listI + 'Edzések</button>' +
+      '<button class="tab" data-act="tab-cut"' + (active === 'cut' ? ' aria-current="page"' : '') + '>' + scaleI + 'Szálkásítás</button>' +
+      '<button class="tab" data-act="tab-social"' + (active === 'social' ? ' aria-current="page"' : '') + '><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8C10.5 5 7 4.5 7 6.8 7 8 9.5 8 12 8zm0 0c1.5-3 5-3.5 5-1.2C17 8 14.5 8 12 8z"/></svg>Közös</button>' +
+      '</div></nav>';
+  }
+
+  function dayLabel(d) { return d ? d + ' nap' : 'Szabad edzés'; }
+
+  function homeView() {
+    var src = chartSource();
+    var list = src.list;
+    var monthPrefix = today().slice(0, 7);
+    var monthList = list.filter(function (w) { return w.date.slice(0, 7) === monthPrefix; });
+    var monthVol = monthList.reduce(function (a, w) { return a + volume(w); }, 0);
+    var fourWeeksAgo = daysAgo(27);
+    var perWeek = list.filter(function (w) { return w.date >= fourWeeksAgo; }).length / 4;
+
+    var h = '<div class="wrap">';
+    h += '<header class="head"><div class="eyebrow">Vasnapló</div><h1>' + esc(fmtDate(today(), { month: 'long', day: 'numeric', weekday: 'long' })) + '</h1></header>';
+    if (!storageOk) h += '<p class="note">Ez a böngésző most nem engedi a mentést, ezért az adatok frissítéskor elvesznek.</p>';
+
+    if (state.active) {
+      var a = state.active;
+      h += '<section class="active-card"><div><div class="eyebrow">Folyamatban · ' + esc(dayLabel(a.day)) + '</div><div class="muted">' + esc(fmtDate(a.date)) + ' · ' + a.exercises.length + ' gyakorlat · ' + fmtKg(volume(a)) + '</div></div>';
+      h += '<button class="btn btn-primary btn-block" data-act="resume">Edzés folytatása</button></section>';
+    } else {
+      var nd = nextDay();
+      h += '<section class="start-card"><div class="start-sub">Következő a sorban: <b>' + nd + ' nap</b> · ' + PLAN[nd].map(function (p) { return p[0]; }).slice(0, 3).join(', ') + '…</div>';
+      h += '<button class="btn btn-primary btn-block" data-act="start" data-day="' + nd + '">' + nd + ' nap indítása</button>';
+      h += '<div class="day-row">';
+      DAYS.filter(function (d) { return d !== nd; }).forEach(function (d) { h += '<button class="btn btn-ghost" data-act="start" data-day="' + d + '">' + d + ' nap</button>'; });
+      h += '<button class="btn btn-ghost" data-act="start" data-day="">Üres</button></div></section>';
+    }
+
+    h += '<div class="sec"><div class="sec-head"><h2>Statisztika</h2>' + (src.sample ? '<span class="chip">Példa adatok</span>' : '') + '</div>';
+    if (src.sample) h += '<p class="note">Az első mentett edzésed után itt a saját számaid jelennek meg.</p>';
+    h += '<div class="stats">';
+    h += '<div class="stat"><b>' + monthList.length + '</b><span>edzés ebben a hónapban</span></div>';
+    h += '<div class="stat"><b>' + fmtN(perWeek) + '</b><span>edzés hetente (4 hét átlag)</span></div>';
+    h += '<div class="stat"><b>' + tickLabel(monthVol) + '</b><span>kg össztömeg a hónapban</span></div>';
+    h += '</div></div>';
+
+    h += '<div class="chart-card"><div class="sec-head"><span class="eyebrow">Heti össztömeg</span></div>';
+    h += '<div class="readout"><b id="week-val"></b><span id="week-lbl"></span></div>';
+    h += '<div class="chart" id="chart-week"></div><div class="chart-hint">Koppints egy hétre a részletekért. Össztömeg = súly × ismétlés minden sorozatban.</div></div>';
+
+    var names = exerciseNames(list);
+    if (names.length) {
+      if (!pickedEx || names.indexOf(pickedEx) < 0) pickedEx = names[0];
+      h += '<div class="chart-card"><div class="sec-head"><span class="eyebrow">Fejlődés</span>';
+      h += '<select id="ex-pick" aria-label="Gyakorlat kiválasztása">' + names.map(function (n) { return '<option' + (n === pickedEx ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></div>';
+      h += '<div class="readout"><b id="prog-val"></b><span id="prog-lbl"></span></div>';
+      h += '<div class="chart" id="chart-prog"></div><div class="chart-hint">A legnehezebb sorozatod edzésenként, az utolsó 12 alkalom.</div></div>';
+    }
+
+    var recs = records(list);
+    if (recs.length) {
+      h += '<div class="sec"><h2>Rekordok</h2><div class="pr">';
+      recs.forEach(function (r) {
+        var val = r.rec.kg > 0 ? '<b>' + fmtN(r.rec.kg) + ' kg</b> × ' + r.rec.reps : '<b>' + r.rec.reps + '</b> ismétlés';
+        h += '<div class="pr-row"><span class="pr-name">' + esc(r.name) + '</span><span class="pr-val">' + val + '<small>' + esc(shortDate(r.rec.date)) + '</small></span></div>';
+      });
+      h += '</div></div>';
+    }
+
+    h += '</div>' + tabBar('home');
+    return h;
+  }
+
+  function historyView() {
+    var h = '<div class="wrap">';
+    h += '<header class="head"><div class="eyebrow">Vasnapló</div><h1>Korábbi edzések</h1></header>';
+    var list = sortedDesc(state.workouts);
+    if (!list.length) {
+      h += '<div class="empty">Még nincs mentett edzés. Indíts egyet az Áttekintés fülön, és a befejezés után itt jelenik meg.</div>';
+    } else {
+      h += '<div class="list">';
+      list.forEach(function (w) {
+        var names = w.exercises.map(function (e) { return e.name; }).join(', ');
+        h += '<button class="row" data-act="open" data-id="' + esc(w.id) + '">';
+        h += '<span class="row-title">' + esc(fmtDate(w.date)) + (w.day ? '<span class="chip chip-day">' + w.day + ' nap</span>' : '') + '</span>';
+        h += '<span class="row-vol">' + Math.round(volume(w)).toLocaleString('hu-HU') + '<small>kg · ' + setCount(w) + ' sorozat</small></span>';
+        h += '<span class="row-sub">' + esc(names || 'Nincs gyakorlat') + '</span>';
+        h += '</button>';
+      });
+      h += '</div>';
+    }
+    h += '<div class="sec"><h2>Adatok átvitele</h2><div class="weigh">';
+    h += '<p class="note">Az adataid ezen az eszközön, ebben a böngészőben vannak. Ha máshová költözöl, például a telepített appba, itt viheted át őket: a régi helyen kimásolod, az újon beilleszted és betöltöd.</p>';
+    h += '<button class="btn btn-ghost" data-act="export">Adatok másolása</button>';
+    h += '<textarea id="data-box" class="data-box" rows="4" placeholder="Ide illeszd be a kimásolt adatokat" aria-label="Átvitt adatok"></textarea>';
+    h += '<button class="btn btn-ghost" data-act="import">Adatok betöltése</button>';
+    h += '</div></div>';
+    h += '</div>' + tabBar('history');
+    return h;
+  }
+
+  function workoutView() {
+    var a = state.active;
+    var h = '<div class="wrap has-bar">';
+    h += '<div class="topbar"><button class="back" data-act="tab-home">‹ Vissza</button><div class="eyebrow">' + esc(dayLabel(a.day)) + '</div></div>';
+    h += '<div class="date-field"><label for="w-date">Dátum</label><input type="date" id="w-date" value="' + esc(a.date) + '"></div>';
+
+    if (!a.exercises.length) {
+      h += '<div class="empty">Add hozzá az első gyakorlatot lent. A sorozatoknál elég beírni a súlyt és az ismétlést.</div>';
+    }
+    a.exercises.forEach(function (ex) {
+      h += '<section class="ex" aria-label="' + esc(ex.name) + '">';
+      h += '<div class="ex-head"><div class="ex-title"><div class="ex-name">' + esc(ex.name) + '</div>';
+      var meta = '';
+      if (ex.superset) meta += '<span class="chip">Szuperszett</span>';
+      if (meta) h += '<div class="ex-meta">' + meta + '</div>';
+      if (ex.note) h += '<div class="ex-note">' + esc(ex.note) + '</div>';
+      var last = lastSetsFor(ex.name);
+      if (last) {
+        h += '<div class="last">Legutóbb (' + esc(shortDate(last.date)) + '): <b>' + last.sets.map(function (s) { return (s.kg || '–') + '×' + (s.reps || '–'); }).join(' · ') + '</b></div>';
+      }
+      h += '</div><button class="icon-btn" data-act="del-ex" data-ex="' + ex.id + '" aria-label="Gyakorlat törlése" title="Gyakorlat törlése">×</button></div>';
+      h += '<div class="sets">';
+      ex.sets.forEach(function (s, i) {
+        h += '<div class="set">';
+        h += '<span class="set-n">' + (i + 1) + '</span>';
+        h += '<span class="num-wrap"><input class="num" id="kg-' + ex.id + '-' + i + '" inputmode="decimal" placeholder="–" aria-label="' + (i + 1) + '. sorozat súlya kilogrammban" data-field="kg" data-ex="' + ex.id + '" data-i="' + i + '" value="' + esc(s.kg) + '"><span class="unit">kg</span></span>';
+        h += '<span class="times">×</span>';
+        h += '<span class="num-wrap"><input class="num" id="reps-' + ex.id + '-' + i + '" inputmode="numeric" placeholder="–" aria-label="' + (i + 1) + '. sorozat ismétlésszáma" data-field="reps" data-ex="' + ex.id + '" data-i="' + i + '" value="' + esc(s.reps) + '"><span class="unit">ism</span></span>';
+        h += '<button class="icon-btn" data-act="del-set" data-ex="' + ex.id + '" data-i="' + i + '" aria-label="' + (i + 1) + '. sorozat törlése">−</button>';
+        h += '</div>';
+      });
+      h += '</div>';
+      h += '<button class="btn btn-small add-set" data-act="add-set" data-ex="' + ex.id + '">+ Sorozat</button>';
+      h += '</section>';
+    });
+
+    h += '<form class="add-ex" id="add-ex-form"><input class="text-input" id="ex-name" list="ex-names" placeholder="Másik gyakorlat hozzáadása" autocomplete="off" aria-label="Gyakorlat neve"><button class="btn btn-ghost" type="submit">Hozzáad</button></form>';
+    h += '<p class="note">Az üresen hagyott sorozatok nem mentődnek el, így nyugodtan kihagyhatsz egyet.</p>';
+    h += '</div>';
+
+    h += '<div class="bar"><div class="bar-inner">';
+    h += '<div class="bar-vol"><span>Össztömeg</span><b id="live-vol">' + fmtKg(volume(a)) + '</b></div>';
+    h += '<div class="bar-btns"><button class="btn btn-danger-ghost" data-act="discard">Elvetés</button><button class="btn btn-primary" data-act="finish">Befejezés</button></div>';
+    h += '</div></div>';
+    return h;
+  }
+
+  function detailView() {
+    var w = state.workouts.filter(function (x) { return x.id === detailId; })[0];
+    if (!w) { view = 'history'; return historyView(); }
+    var h = '<div class="wrap">';
+    h += '<div class="topbar"><button class="back" data-act="tab-history">‹ Edzések</button>' + '<span class="ex-meta">' + (w.points ? '<span class="chip chip-day">+' + w.points + ' pont</span>' : '') + (w.day ? '<span class="chip chip-day">' + w.day + ' nap</span>' : '') + '</span></div>';
+    h += '<header class="head"><div class="eyebrow">Edzés</div><h1>' + esc(fmtDate(w.date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })) + '</h1></header>';
+    h += '<div class="stats"><div class="stat"><b>' + w.exercises.length + '</b><span>gyakorlat</span></div><div class="stat"><b>' + setCount(w) + '</b><span>sorozat</span></div><div class="stat"><b>' + tickLabel(volume(w)) + '</b><span>kg össztömeg</span></div></div>';
+    w.exercises.forEach(function (ex) {
+      h += '<section class="ex"><div class="ex-name">' + esc(ex.name) + '</div><div class="d-sets">';
+      ex.sets.forEach(function (s, i) {
+        h += '<div class="d-set"><span class="muted">' + (i + 1) + '. sorozat</span><span><b>' + esc(s.kg || '–') + '</b> kg × <b>' + esc(s.reps || '–') + '</b></span></div>';
+      });
+      h += '</div></section>';
+    });
+    h += '<button class="btn btn-danger-ghost" data-act="del-workout" data-id="' + esc(w.id) + '">Edzés törlése</button>';
+    h += '</div>' + tabBar('history');
+    return h;
+  }
+
+  /* ---------- Szálkásítás ---------- */
+  var selW = null;
+  function byDateAsc(a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }
+  function avg(arr) { return arr.length ? arr.reduce(function (a, b) { return a + b; }, 0) / arr.length : NaN; }
+  function fmt1(v) { return (Math.round(v * 10) / 10).toLocaleString('hu-HU', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+  function signed(v, dec) {
+    var r = Math.round(v * Math.pow(10, dec)) / Math.pow(10, dec);
+    var s = Math.abs(r).toLocaleString('hu-HU', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    return r > 0 ? '+' + s : r < 0 ? '−' + s : s;
+  }
+  function sampleWeights() {
+    var out = [];
+    for (var i = 34; i >= 0; i--) {
+      if (i % 6 === 3) continue;
+      var t = 34 - i;
+      var kg = 84.2 - t * 0.075 + Math.sin(t * 1.7) * 0.45 + (((t * 7) % 5) - 2) * 0.1;
+      out.push({ date: daysAgo(i), kg: Math.round(kg * 10) / 10 });
+    }
+    return out;
+  }
+  function weightSource() {
+    return state.weights.length ? { list: state.weights.slice().sort(byDateAsc), sample: false } : { list: sampleWeights(), sample: true };
+  }
+  function rolling(list) {
+    return list.map(function (e) {
+      var st = parseIso(e.date); st.setDate(st.getDate() - 6);
+      var s = isoDate(st);
+      return avg(list.filter(function (x) { return x.date >= s && x.date <= e.date; }).map(function (x) { return x.kg; }));
+    });
+  }
+  function weekStats(list) {
+    var map = {};
+    list.forEach(function (e) { var k = mondayOf(e.date); (map[k] = map[k] || []).push(e.kg); });
+    return Object.keys(map).sort().reverse().map(function (k) { return { key: k, avg: avg(map[k]), n: map[k].length }; });
+  }
+
+  function cutView() {
+    var src = weightSource();
+    var list = src.list;
+    var last = list[list.length - 1];
+    var todayEntry = state.weights.filter(function (e) { return e.date === today(); })[0];
+    var h = '<div class="wrap">';
+    h += '<header class="head"><div class="eyebrow">Vasnapló</div><h1>Szálkásítás</h1></header>';
+
+    h += '<form class="weigh" id="weight-form"><div class="weigh-row">';
+    h += '<div class="field"><label for="wt-date">Nap</label><input type="date" id="wt-date" value="' + today() + '"></div>';
+    h += '<div class="field"><label for="wt-kg">Súly</label><span class="num-wrap"><input class="num" id="wt-kg" inputmode="decimal" placeholder="' + (state.weights.length ? esc(fmt1(state.weights.slice().sort(byDateAsc).pop().kg)) : '–') + '" value="' + (todayEntry ? esc(fmt1(todayEntry.kg)) : '') + '" aria-label="Testsúly kilogrammban"><span class="unit">kg</span></span></div>';
+    h += '</div><button class="btn btn-primary" type="submit">' + (todayEntry ? 'Mai súly frissítése' : 'Mentés') + '</button>';
+    h += '<p class="note">Mérj reggel, ébredés és mosdó után, evés előtt. A napi ingadozás víz és étel miatt teljesen normális, a heti átlag mutatja a valódi irányt.</p></form>';
+
+    var roll = rolling(list);
+    var wk = weekStats(list);
+    var cur = wk[0], prev = wk[1];
+    var nowAvg = roll[roll.length - 1];
+
+    h += '<div class="sec"><div class="sec-head"><h2>Hogy állsz</h2>' + (src.sample ? '<span class="chip">Példa adatok</span>' : '') + '</div>';
+    if (src.sample) h += '<p class="note">Az első mérésed után itt a saját számaid jelennek meg.</p>';
+    h += '<div class="stats stats-2">';
+    h += '<div class="stat"><b>' + fmt1(nowAvg) + '</b><span>kg, 7 napos átlag</span></div>';
+    h += '<div class="stat"><b>' + signed(nowAvg - list[0].kg, 1) + '</b><span>kg a kezdés óta (' + esc(shortDate(list[0].date)) + ')</span></div>';
+    if (cur && prev) {
+      h += '<div class="stat"><b>' + signed(cur.avg - prev.avg, 1) + '</b><span>kg heti átlag az előző héthez</span></div>';
+      h += '<div class="stat"><b>' + signed((cur.avg - prev.avg) / prev.avg * 100, 1) + '%</b><span>heti tempó a testsúlyodhoz</span></div>';
+    } else {
+      h += '<div class="stat"><b>–</b><span>heti változás (két hét adat kell hozzá)</span></div>';
+      h += '<div class="stat"><b>–</b><span>heti tempó</span></div>';
+    }
+    h += '</div>';
+    h += '<p class="note">Szálkásításnál általában heti kb. 0,5–1% testsúlycsökkenést szoktak javasolni, így jobban megmarad az izom és az erő. Ha a súlyaid az edzésen is tartják magukat, jó úton vagy.</p></div>';
+
+    h += '<div class="chart-card"><div class="sec-head"><span class="eyebrow">Testsúly</span><div class="legend"><span><i class="sw-dot"></i>Napi mérés</span><span><i class="sw-line"></i>7 napos átlag</span></div></div>';
+    h += '<div class="readout"><b id="w-val"></b><span id="w-lbl"></span></div>';
+    h += '<div class="chart" id="chart-weight"></div><div class="chart-hint">Koppints egy napra a részletekért.</div></div>';
+
+    h += '<div class="sec"><h2>Cél</h2><form class="weigh" id="goal-form"><div class="goal-row"><div class="field"><label for="goal-kg">Célsúly</label><span class="num-wrap"><input class="num" id="goal-kg" inputmode="decimal" placeholder="–" value="' + (state.goal ? esc(fmt1(state.goal)) : '') + '"><span class="unit">kg</span></span></div><button class="btn btn-ghost" type="submit">Mentés</button></div>';
+    if (state.goal && !isNaN(nowAvg) && !src.sample) {
+      var left = nowAvg - state.goal;
+      var rate = cur && prev ? prev.avg - cur.avg : NaN;
+      var txt = left <= 0 ? 'Elérted a célsúlyt a heti átlag alapján.' : 'Még ' + fmt1(left) + ' kg van hátra.';
+      if (left > 0 && rate > 0.05) txt += ' A mostani tempóval nagyjából ' + Math.ceil(left / rate) + ' hét.';
+      h += '<p class="note">' + txt + '</p>';
+    }
+    h += '</form></div>';
+
+    if (wk.length) {
+      h += '<div class="sec"><h2>Heti átlagok</h2><div class="pr">';
+      wk.slice(0, 8).forEach(function (w, i) {
+        var p = wk[i + 1];
+        var end = parseIso(w.key); end.setDate(end.getDate() + 6);
+        h += '<div class="pr-row"><span class="pr-name">' + esc(shortDate(w.key)) + ' – ' + esc(shortDate(isoDate(end))) + '<br><span class="delta">' + w.n + ' mérés</span></span><span class="pr-val"><b>' + fmt1(w.avg) + ' kg</b><small>' + (p ? signed(w.avg - p.avg, 1) + ' kg' : 'első hét') + '</small></span></div>';
+      });
+      h += '</div></div>';
+    }
+
+    if (state.weights.length) {
+      h += '<div class="sec"><h2>Mérések</h2><div class="pr">';
+      state.weights.slice().sort(byDateAsc).reverse().slice(0, 14).forEach(function (e) {
+        h += '<div class="entry"><span>' + esc(fmtDate(e.date, { month: 'short', day: 'numeric', weekday: 'short' })) + '</span><span class="entry-right"><b>' + fmt1(e.kg) + ' kg</b><button class="icon-btn" data-act="del-weight" data-date="' + e.date + '" aria-label="Mérés törlése">×</button></span></div>';
+      });
+      h += '</div></div>';
+    }
+
+    h += '</div>' + tabBar('cut');
+    return h;
+  }
+
+  function drawWeight() {
+    var el = document.getElementById('chart-weight');
+    if (!el) return;
+    var all = weightSource().list;
+    var roll = rolling(all);
+    var cutoff = daysAgo(59);
+    var list = [], rl = [];
+    all.forEach(function (e, i) { if (e.date >= cutoff) { list.push(e); rl.push(roll[i]); } });
+    if (!list.length) { el.innerHTML = ''; return; }
+    var W = Math.max(260, el.clientWidth || 320), H = 180, L = 40, R = 12, T = 12, B = 24;
+    var pw = W - L - R, ph = H - T - B;
+    var vals = list.map(function (e) { return e.kg; }).concat(rl);
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    var step = Math.max(0.5, niceStep(Math.max(hi - lo, 1) / 3));
+    var min = Math.floor((lo - step * 0.25) / step) * step;
+    var max = Math.ceil((hi + step * 0.25) / step) * step;
+    var d0 = parseIso(list[0].date).getTime();
+    var span = Math.max(1, (parseIso(list[list.length - 1].date).getTime() - d0) / 864e5);
+    var xs = list.map(function (e) { return list.length === 1 ? L + pw / 2 : L + ((parseIso(e.date).getTime() - d0) / 864e5 / span) * pw; });
+    var y = function (v) { return T + ph - ((v - min) / (max - min)) * ph; };
+    var sel = selW == null || selW >= list.length ? list.length - 1 : selW;
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Testsúly napi mérései és 7 napos átlaga">';
+    for (var t = min; t <= max + 0.001; t += step) {
+      s += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(t) + '" y2="' + y(t) + '"/>';
+      s += '<text x="' + (L - 6) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + fmtN(t) + '</text>';
+    }
+    list.forEach(function (e, i) {
+      s += '<circle class="wdot' + (i === sel ? ' sel' : '') + '" cx="' + xs[i].toFixed(1) + '" cy="' + y(e.kg).toFixed(1) + '" r="' + (i === sel ? 5 : 3.5) + '"/>';
+    });
+    if (list.length > 1) {
+      var d = '';
+      rl.forEach(function (v, i) { d += (i ? 'L' : 'M') + xs[i].toFixed(1) + ',' + y(v).toFixed(1); });
+      s += '<path class="line" d="' + d + '"/>';
+    }
+    s += '<text x="' + xs[0] + '" y="' + (H - 6) + '" text-anchor="' + (list.length === 1 ? 'middle' : 'start') + '">' + esc(shortDate(list[0].date).replace(/\.$/, '')) + '</text>';
+    if (list.length > 1) s += '<text x="' + xs[xs.length - 1] + '" y="' + (H - 6) + '" text-anchor="end">' + esc(shortDate(list[list.length - 1].date).replace(/\.$/, '')) + '</text>';
+    list.forEach(function (e, i) {
+      var a = i === 0 ? L : (xs[i - 1] + xs[i]) / 2;
+      var b = i === list.length - 1 ? W - R : (xs[i] + xs[i + 1]) / 2;
+      s += '<rect class="hit" data-act="wpoint" data-i="' + i + '" x="' + a + '" y="' + T + '" width="' + Math.max(1, b - a) + '" height="' + ph + '"><title>' + esc(shortDate(e.date)) + ': ' + fmt1(e.kg) + ' kg</title></rect>';
+    });
+    s += '</svg>';
+    el.innerHTML = s;
+    var e = list[sel];
+    document.getElementById('w-val').textContent = fmt1(e.kg) + ' kg';
+    document.getElementById('w-lbl').textContent = fmtDate(e.date, { month: 'short', day: 'numeric' }) + ' · 7 napos átlag: ' + fmt1(rl[sel]) + ' kg';
+  }
+
+  /* ---------- Közös: pontok és jutalmak ---------- */
+  var SUPA_URL = 'https://eivloyhyvsmqtpbinaoa.supabase.co';
+  var SUPA_KEY = 'sb_publishable_6MA4QUBUwLO9QzMLk48awQ_cNjSsyiW';
+  var PAIR = '79vwfvx2e4y018uvuo8y';
+  var APP_ID = 'vas';
+  var BRAND_HTML = '<div class="eyebrow">Vasnapló</div>';
+  var REWARDS = [
+    ['film', 'Filmest, te választasz', 40, 'Te döntöd el, mit néztek, a párod pedig nem szólhat bele.'],
+    ['nasi', 'Kedvenc nasi', 60, 'A párod megveszi és hazahozza a kedvenc nasidat.'],
+    ['masszazs', '15 perc masszázs', 75, 'Hát, váll vagy talp, te döntöd el, hol.'],
+    ['pakolas', 'Ma ő pakol el', 100, 'Főzés után a párod egyedül pakol el és mosogat, te pihenhetsz.'],
+    ['program', 'Te választod a hétvégi programot', 150, 'Te találod ki, mit csináljatok a hétvégén, a párod pedig benne van.'],
+    ['gyorsetterem', 'Gyorséttermes kiruccanás', 250, 'A párod elvisz a kedvenc gyorséttermedbe.'],
+    ['randi', 'Randi, amit a párod szervez', 400, 'Ő tervezi meg és ő fizeti, neked csak el kell menned.']
+  ];
+  var syncing = false;
+
+  function bestSetOf(sets) {
+    var b = null;
+    sets.forEach(function (st) {
+      var k = num(st.kg), r = num(st.reps);
+      if (isNaN(k)) k = 0;
+      if (isNaN(r)) r = 0;
+      if (!b || k > b.kg || (k === b.kg && r > b.reps)) b = { kg: k, reps: r };
+    });
+    return b;
+  }
+  function previousBest(name) {
+    var all = [];
+    state.workouts.forEach(function (w) { w.exercises.forEach(function (ex) { if (ex.name === name) all = all.concat(ex.sets); }); });
+    return all.length ? bestSetOf(all) : null;
+  }
+  function scoreWorkout(w) {
+    var filled = w.exercises.reduce(function (a, ex) { return a + ex.sets.length; }, 0);
+    if (filled < 10) return 0;
+    if (state.workouts.some(function (x) { return x.date === w.date && x.points; })) return 0;
+    var pts = 10;
+    var wk = mondayOf(w.date);
+    var inWeek = state.workouts.filter(function (x) { return x.points && mondayOf(x.date) === wk; }).length;
+    var full = inWeek + 1 === 3;
+    if (full) pts += 10;
+    var prs = 0;
+    w.exercises.forEach(function (ex) {
+      var prev = previousBest(ex.name);
+      var cur = bestSetOf(ex.sets);
+      if (prev && cur && (cur.kg > prev.kg || (cur.kg === prev.kg && cur.reps > prev.reps))) prs++;
+    });
+    pts += prs * 3;
+    w.points = pts;
+    var label = (w.day ? w.day + ' nap' : 'Edzés');
+    if (full) label += ' · teljes hét';
+    if (prs) label += ' · ' + prs + ' rekord';
+    queueEvent({ kind: 'workout', points: pts, label: label, ref: w.id, day: w.date });
+    return pts;
+  }
+
+  function pushEvent(e) {
+    e.id = uid() + Math.random().toString(36).slice(2, 8);
+    e.pair = PAIR;
+    e.who = APP_ID;
+    e.name = state.social.name || '';
+    e.created_at = new Date().toISOString();
+    state.social.outbox.push(e);
+  }
+  function queueEvent(e) {
+    if (!SUPA_URL) return;
+    pushEvent(e);
+    save();
+    sync();
+  }
+  function hdr(extra) { extra = extra || {}; extra.apikey = SUPA_KEY; return extra; }
+  function sync() {
+    if (!SUPA_URL || syncing) return;
+    if (state.social.name && !state.social.joined) {
+      state.social.joined = true;
+      pushEvent({ kind: 'join', points: 0, label: 'csatlakozott', ref: 'join' });
+    }
+    syncing = true;
+    var failed = false;
+    var chain = Promise.resolve();
+    state.social.outbox.slice().forEach(function (ev) {
+      chain = chain.then(function () {
+        return fetch(SUPA_URL + '/rest/v1/events', {
+          method: 'POST',
+          headers: hdr({ 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }),
+          body: JSON.stringify(ev)
+        }).then(function (r) {
+          if (r.ok || r.status === 409) {
+            state.social.outbox = state.social.outbox.filter(function (x) { return x.id !== ev.id; });
+          } else { failed = true; }
+        }).catch(function () { failed = true; });
+      });
+    });
+    chain.then(function () {
+      return fetch(SUPA_URL + '/rest/v1/events?pair=eq.' + encodeURIComponent(PAIR) + '&order=created_at.desc&limit=1000', { headers: hdr() });
+    }).then(function (r) {
+      if (!r.ok) throw new Error('http ' + r.status);
+      return r.json();
+    }).then(function (rows) {
+      state.social.events = rows;
+      state.social.lastSync = Date.now();
+      state.social.error = failed ? 'error' : '';
+    }).catch(function () {
+      state.social.error = navigator.onLine === false ? 'offline' : 'error';
+    }).then(function () {
+      syncing = false;
+      save();
+      if (view === 'social' && !document.querySelector('[data-armed="1"]')) render();
+      checkNotify();
+    });
+  }
+
+  /* Pont levonása, ha egy edzést törölnek */
+  function revokeWorkout(w) {
+    var queued = state.social.outbox.filter(function (e) { return e.kind === 'workout' && e.ref === w.id; })[0];
+    if (queued) {
+      state.social.outbox = state.social.outbox.filter(function (e) { return e !== queued; });
+      save();
+      return;
+    }
+    queueEvent({ kind: 'revoke', points: -w.points, label: (w.day ? w.day + ' nap' : 'Edzés'), ref: w.id, day: w.date });
+  }
+
+  /* Felugró értesítés, ha a párod beváltott valamit */
+  var GIFT_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8C10.5 5 7 4.5 7 6.8 7 8 9.5 8 12 8zm0 0c1.5-3 5-3.5 5-1.2C17 8 14.5 8 12 8z"/></svg>';
+  function checkNotify() {
+    if (!SUPA_URL || !state.social.name || document.getElementById('sc-modal')) return;
+    var evs = allEvents();
+    var fulfilled = {};
+    evs.forEach(function (e) { if (e.kind === 'fulfill') fulfilled[e.ref] = 1; });
+    var seen = state.social.seen;
+    var fresh = evs.filter(function (e) { return e.kind === 'redeem' && e.who !== APP_ID && !fulfilled[e.id] && seen.indexOf(e.id) < 0; });
+    if (!fresh.length) return;
+    var e = fresh[fresh.length - 1];
+    var m = document.createElement('div');
+    m.id = 'sc-modal';
+    m.className = 'modal-back';
+    m.setAttribute('role', 'dialog');
+    m.setAttribute('aria-modal', 'true');
+    m.setAttribute('aria-labelledby', 'sc-modal-t');
+    m.innerHTML = '<div class="modal"><div class="modal-icon">' + GIFT_SVG + '</div><div class="eyebrow">Beváltás</div>' +
+      '<h2 id="sc-modal-t">' + esc(e.name || 'A párod') + ' beváltotta: ' + esc(e.label) + '</h2>' +
+      '<p class="note">' + Math.abs(e.points || 0) + ' pontot költött rá. Ha teljesítetted, pipáld ki a Közös fülön.</p>' +
+      '<div class="modal-btns"><button class="btn btn-ghost" data-m="later">Később</button><button class="btn btn-primary" data-m="go">Megnézem</button></div></div>';
+    m.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('[data-m]');
+      if (!btn) return;
+      state.social.seen.push(e.id);
+      save();
+      m.remove();
+      if (btn.dataset.m === 'go' && view !== 'workout') go('social');
+      checkNotify();
+    });
+    document.body.appendChild(m);
+    var first = m.querySelector('[data-m="go"]');
+    if (first) first.focus();
+  }
+
+  function allEvents() {
+    var map = {};
+    var out = [];
+    state.social.events.forEach(function (e) { map[e.id] = 1; out.push(e); });
+    state.social.outbox.forEach(function (e) { if (!map[e.id]) out.push(Object.assign({ pending: true }, e)); });
+    return out.sort(function (a, b) { return a.created_at < b.created_at ? 1 : -1; });
+  }
+  function pointsOf(evs, who) { return evs.filter(function (e) { return e.who === who; }).reduce(function (a, e) { return a + (e.points || 0); }, 0); }
+  function weekCount(evs, who) {
+    var wk = mondayOf(today());
+    var revoked = {};
+    evs.forEach(function (e) { if (e.kind === 'revoke') revoked[e.ref] = 1; });
+    return evs.filter(function (e) { return e.who === who && e.kind === 'workout' && !revoked[e.ref] && e.day && mondayOf(String(e.day).slice(0, 10)) === wk; }).length;
+  }
+  function timeLabel(iso) {
+    var d = new Date(iso);
+    return d.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' });
+  }
+  function dotsHtml(n) {
+    var h = '<div class="dots">';
+    for (var i = 0; i < 3; i++) h += '<i class="' + (i < n ? 'on' : '') + '"></i>';
+    return h + '<span>' + Math.min(n, 9) + '/3 a héten</span></div>';
+  }
+
+  function socialView() {
+    var so = state.social;
+    var h = '<div class="wrap">';
+    h += '<header class="head">' + BRAND_HTML + '<h1>Közös</h1></header>';
+    if (!SUPA_URL) {
+      h += '<div class="empty">A közös rész még nincs bekapcsolva.</div>';
+      return h + '</div>' + tabBar('social');
+    }
+    if (!so.name) {
+      h += '<form class="weigh" id="sc-name-form"><div class="field"><label for="sc-name">A neved</label><input class="text-input" id="sc-name" autocomplete="given-name" placeholder="Ahogy a párod látni fog"></div>';
+      h += '<button class="btn btn-primary" type="submit">Kezdjük</button>';
+      h += '<p class="note">Edzésekkel pontokat gyűjtesz, és a pontokat beválthatod a párodnál. Csak a pontok és az edzések ténye látszik a párodnak, a súlyok és a testsúlyod nem.</p></form>';
+      return h + '</div>' + tabBar('social');
+    }
+    var evs = allEvents();
+    var partnerEv = evs.filter(function (e) { return e.who !== APP_ID; })[0];
+    var partnerWho = partnerEv ? partnerEv.who : null;
+    var pName = partnerEv && partnerEv.name ? partnerEv.name : 'Párod';
+    var myPts = pointsOf(evs, APP_ID);
+    var pPts = partnerWho ? pointsOf(evs, partnerWho) : 0;
+
+    h += '<div class="sc-cards">';
+    h += '<div class="sc-card me"><span class="sc-name">' + esc(so.name) + ' (te)</span><span class="sc-pts">' + myPts + ' <small>pont</small></span>' + dotsHtml(weekCount(evs, APP_ID)) + '</div>';
+    h += '<div class="sc-card"><span class="sc-name">' + esc(pName) + '</span><span class="sc-pts">' + pPts + ' <small>pont</small></span>' + dotsHtml(partnerWho ? weekCount(evs, partnerWho) : 0) + '</div>';
+    h += '</div>';
+
+    var fulfilled = {};
+    evs.forEach(function (e) { if (e.kind === 'fulfill') fulfilled[e.ref] = 1; });
+    var todo = evs.filter(function (e) { return e.kind === 'redeem' && e.who !== APP_ID && !fulfilled[e.id]; });
+    var waiting = evs.filter(function (e) { return e.kind === 'redeem' && e.who === APP_ID && !fulfilled[e.id]; });
+
+    if (todo.length) {
+      h += '<div class="sec"><h2>Teljesítendő</h2><div class="todo">';
+      todo.forEach(function (e) {
+        h += '<div class="reward"><span class="reward-txt"><b>' + esc(e.label) + '</b><small>' + esc(pName) + ' beváltotta · ' + esc(timeLabel(e.created_at)) + '</small></span><button class="btn btn-primary btn-small" data-act="fulfill" data-id="' + esc(e.id) + '">Teljesítve</button></div>';
+      });
+      h += '</div></div>';
+    }
+    if (waiting.length) {
+      h += '<div class="sec"><h2>Beváltásra vár</h2><div class="pr">';
+      waiting.forEach(function (e) {
+        h += '<div class="pr-row"><span class="pr-name">' + esc(e.label) + '</span><span class="pr-val"><small>' + esc(timeLabel(e.created_at)) + '</small></span></div>';
+      });
+      h += '</div><p class="note">' + esc(pName) + ' appjában látszik, mit kértél. Ha teljesítette, kipipálja.</p></div>';
+    }
+
+    h += '<div class="sec"><h2>Bolt</h2><div class="pr">';
+    REWARDS.forEach(function (r) {
+      var ok = myPts >= r[2];
+      h += '<div class="reward"><span class="reward-txt"><b>' + esc(r[1]) + '</b>' + (r[3] ? '<span class="reward-desc">' + esc(r[3]) + '</span>' : '') + '<small class="reward-cost">' + r[2] + ' pont</small></span>';
+      h += '<button class="btn ' + (ok ? 'btn-primary' : 'btn-ghost') + ' btn-small" data-act="redeem" data-r="' + r[0] + '"' + (ok ? '' : ' disabled') + '>' + (ok ? 'Beváltom' : 'Még ' + (r[2] - myPts)) + '</button></div>';
+    });
+    h += '</div><p class="note">Edzés: 10 pont · teljes hét (3. edzés): +10 · új rekord: +3. Naponta 1 edzés számít, legalább 10 kitöltött sorozattal.</p></div>';
+
+    if (evs.length) {
+      h += '<div class="sec"><h2>Napló</h2><div class="pr">';
+      evs.slice(0, 20).forEach(function (e) {
+        var mine = e.who === APP_ID;
+        var who = e.name || pName;
+        var txt = e.kind === 'join' ? (mine ? 'Csatlakoztál a közös részhez' : who + ' csatlakozott a közös részhez')
+          : e.kind === 'workout' ? (mine ? 'Edzettél: ' : who + ' edzett: ') + e.label
+          : e.kind === 'redeem' ? (mine ? 'Beváltottad: ' : who + ' beváltotta: ') + e.label
+          : e.kind === 'revoke' ? (mine ? 'Töröltél egy edzést: ' : who + ' törölt egy edzést: ') + e.label
+          : (mine ? 'Teljesítetted: ' : who + ' teljesítette: ') + e.label;
+        var pts = e.points > 0 ? '+' + e.points : e.points < 0 ? '−' + Math.abs(e.points) : '';
+        h += '<div class="feed-row"><span>' + esc(txt) + (pts ? ' <span class="feed-pts">' + pts + '</span>' : '') + '</span><time>' + (e.pending ? 'küldésre vár' : esc(timeLabel(e.created_at))) + '</time></div>';
+      });
+      h += '</div></div>';
+    }
+
+    var status = so.error === 'offline' ? 'Nincs net. Amint lesz, elküldöm, ami vár.' : so.error ? 'Nem sikerült frissíteni. Próbáld újra kicsit később.' : so.lastSync ? 'Frissítve: ' + new Date(so.lastSync).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }) : 'Még nem frissült';
+    if (so.outbox.length) status += ' (' + so.outbox.length + ' küldésre vár)';
+    h += '<div class="sync"><span>' + esc(status) + '</span><button class="btn btn-ghost" data-act="sync">Frissítés</button></div>';
+    h += '</div>' + tabBar('social');
+    return h;
+  }
+
+  function render() {
+    if (view === 'workout' && !state.active) view = 'home';
+    app.innerHTML = view === 'workout' ? workoutView() : view === 'detail' ? detailView() : view === 'history' ? historyView() : view === 'cut' ? cutView() : view === 'social' ? socialView() : homeView();
+    fillDatalist();
+    if (view === 'home') drawCharts();
+    if (view === 'cut') drawWeight();
+  }
+  function go(v) { view = v; render(); window.scrollTo(0, 0); }
+  function findEx(id) { return state.active.exercises.filter(function (e) { return e.id === id; })[0]; }
+
+  function armed(btn, label) {
+    if (btn.dataset.armed === '1') return true;
+    var orig = btn.textContent;
+    btn.dataset.armed = '1';
+    if (label) btn.textContent = label;
+    setTimeout(function () { if (btn.isConnected) { btn.dataset.armed = ''; btn.textContent = orig; } }, 3000);
+    return false;
+  }
+
+  function startWorkout(day) {
+    var exercises = day ? PLAN[day].map(function (p) {
+      var sets = [];
+      for (var i = 0; i < p[1]; i++) sets.push({ kg: '', reps: '' });
+      return { id: uid(), name: p[0], note: p[3] || '', superset: !!p[4], sets: sets };
+    }) : [];
+    state.active = { id: uid(), date: today(), day: day || '', exercises: exercises };
+    save(); go('workout');
+    if (!day) { var inp = document.getElementById('ex-name'); if (inp) inp.focus(); }
+  }
+
+  app.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]');
+    if (!b) return;
+    var act = b.dataset.act;
+    if (act === 'start') {
+      startWorkout(b.dataset.day);
+    } else if (act === 'resume') {
+      go('workout');
+    } else if (act === 'tab-home') {
+      go('home');
+    } else if (act === 'tab-history') {
+      go('history');
+    } else if (act === 'export') {
+      var json = JSON.stringify({ app: 'vasnaplo', v: 1, workouts: state.workouts, weights: state.weights, goal: state.goal });
+      var box = document.getElementById('data-box');
+      var fallback = function () { box.value = json; box.focus(); box.select(); toast('Jelöld ki a szöveget, és másold ki'); };
+      try {
+        navigator.clipboard.writeText(json).then(function () { toast('Adatok kimásolva'); }, fallback);
+      } catch (err) { fallback(); }
+    } else if (act === 'import') {
+      var raw = document.getElementById('data-box').value.trim();
+      var data;
+      try { data = JSON.parse(raw); } catch (err) { data = null; }
+      if (!data || data.app !== 'vasnaplo' || !Array.isArray(data.workouts)) { toast('Ez nem Vasnapló adat. Másold ki újra a régi helyen.'); return; }
+      if (!armed(b, 'Koppints újra a betöltéshez')) return;
+      var ids = {};
+      state.workouts.forEach(function (w) { ids[w.id] = 1; });
+      var added = 0;
+      data.workouts.forEach(function (w) { if (!ids[w.id]) { state.workouts.push(w); added++; } });
+      (data.weights || []).forEach(function (wt) {
+        state.weights = state.weights.filter(function (x) { return x.date !== wt.date; });
+        state.weights.push(wt);
+      });
+      if (typeof data.goal === 'number') state.goal = data.goal;
+      selWeek = null; selPoint = null; selW = null;
+      save(); render();
+      toast(added + ' edzés és ' + (data.weights || []).length + ' mérés betöltve');
+    } else if (act === 'tab-social') {
+      go('social'); sync();
+    } else if (act === 'sync') {
+      sync(); toast('Frissítés…');
+    } else if (act === 'redeem') {
+      var rw = REWARDS.filter(function (x) { return x[0] === b.dataset.r; })[0];
+      if (!rw || pointsOf(allEvents(), APP_ID) < rw[2]) return;
+      if (!armed(b, 'Biztos?')) return;
+      queueEvent({ kind: 'redeem', points: -rw[2], label: rw[1], ref: rw[0] });
+      render(); toast('Beváltva: ' + rw[1]);
+    } else if (act === 'fulfill') {
+      var rd = allEvents().filter(function (x) { return x.id === b.dataset.id; })[0];
+      if (!rd) return;
+      queueEvent({ kind: 'fulfill', points: 0, label: rd.label, ref: rd.id });
+      render(); toast('Kipipálva');
+    } else if (act === 'tab-cut') {
+      selW = null; go('cut');
+    } else if (act === 'wpoint') {
+      selW = +b.dataset.i; drawWeight();
+    } else if (act === 'del-weight') {
+      if (!armed(b, '?')) return;
+      state.weights = state.weights.filter(function (x) { return x.date !== b.dataset.date; });
+      selW = null; save(); render(); toast('Mérés törölve');
+    } else if (act === 'open') {
+      detailId = b.dataset.id; go('detail');
+    } else if (act === 'week') {
+      selWeek = +b.dataset.i; drawCharts();
+    } else if (act === 'point') {
+      selPoint = +b.dataset.i; drawCharts();
+    } else if (act === 'add-set') {
+      var ex = findEx(b.dataset.ex);
+      var last = ex.sets[ex.sets.length - 1];
+      ex.sets.push(last ? { kg: last.kg, reps: last.reps } : { kg: '', reps: '' });
+      save(); render();
+      var f = document.getElementById('kg-' + ex.id + '-' + (ex.sets.length - 1));
+      if (f) { f.focus(); f.select(); }
+    } else if (act === 'del-set') {
+      findEx(b.dataset.ex).sets.splice(+b.dataset.i, 1);
+      save(); render();
+    } else if (act === 'del-ex') {
+      if (!armed(b, '?')) return;
+      state.active.exercises = state.active.exercises.filter(function (x) { return x.id !== b.dataset.ex; });
+      save(); render();
+    } else if (act === 'discard') {
+      if (!armed(b, 'Biztos?')) return;
+      state.active = null; save(); go('home'); toast('Edzés elvetve');
+    } else if (act === 'finish') {
+      var a = state.active;
+      var kept = a.exercises.map(function (x) {
+        return { id: x.id, name: x.name, sets: x.sets.filter(function (s) { return s.kg !== '' || s.reps !== ''; }) };
+      }).filter(function (x) { return x.sets.length; });
+      if (!kept.length) { toast('Írj be legalább egy sorozatot a mentéshez'); return; }
+      var w = { id: a.id, date: a.date, day: a.day || '', savedAt: Date.now(), exercises: kept };
+      var pts = scoreWorkout(w);
+      state.workouts.push(w);
+      state.active = null;
+      selWeek = null; selPoint = null;
+      save();
+      detailId = w.id; go('detail'); toast(pts ? 'Edzés elmentve · +' + pts + ' pont' : 'Edzés elmentve');
+    } else if (act === 'del-workout') {
+      if (!armed(b, 'Koppints újra a törléshez')) return;
+      var dw = state.workouts.filter(function (x) { return x.id === b.dataset.id; })[0];
+      var lost = dw && dw.points ? dw.points : 0;
+      if (lost) revokeWorkout(dw);
+      state.workouts = state.workouts.filter(function (x) { return x.id !== b.dataset.id; });
+      selWeek = null; selPoint = null;
+      save(); go('history'); toast(lost ? 'Edzés törölve · −' + lost + ' pont' : 'Edzés törölve');
+    }
+  });
+
+  app.addEventListener('change', function (e) {
+    if (e.target.id === 'ex-pick') { pickedEx = e.target.value; selPoint = null; drawCharts(); }
+  });
+
+  app.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.id === 'w-date' && state.active) { if (t.value) { state.active.date = t.value; save(); } return; }
+    if (!t.dataset.field || !state.active) return;
+    var ex = findEx(t.dataset.ex); if (!ex) return;
+    ex.sets[+t.dataset.i][t.dataset.field] = t.value.trim();
+    save();
+    var lv = document.getElementById('live-vol'); if (lv) lv.textContent = fmtKg(volume(state.active));
+  });
+
+  app.addEventListener('submit', function (e) {
+    if (e.target.id === 'sc-name-form') {
+      e.preventDefault();
+      var nm = document.getElementById('sc-name').value.trim().slice(0, 24);
+      if (!nm) { document.getElementById('sc-name').focus(); return; }
+      state.social.name = nm; save(); render(); sync();
+      return;
+    }
+    if (e.target.id === 'weight-form') {
+      e.preventDefault();
+      var kg = num(document.getElementById('wt-kg').value);
+      var date = document.getElementById('wt-date').value || today();
+      if (isNaN(kg) || kg < 30 || kg > 300) { toast('Írd be a súlyt kilogrammban, pl. 82,4'); return; }
+      var existed = state.weights.some(function (x) { return x.date === date; });
+      state.weights = state.weights.filter(function (x) { return x.date !== date; });
+      state.weights.push({ date: date, kg: Math.round(kg * 10) / 10 });
+      selW = null; save(); render();
+      toast(existed ? 'Súly frissítve' : 'Súly elmentve');
+      return;
+    }
+    if (e.target.id === 'goal-form') {
+      e.preventDefault();
+      var g = num(document.getElementById('goal-kg').value);
+      state.goal = isNaN(g) ? null : Math.round(g * 10) / 10;
+      save(); render();
+      toast(state.goal ? 'Célsúly elmentve' : 'Célsúly törölve');
+      return;
+    }
+    if (e.target.id !== 'add-ex-form') return;
+    e.preventDefault();
+    var inp = document.getElementById('ex-name');
+    var name = inp.value.trim();
+    if (!name) { inp.focus(); return; }
+    var ex = { id: uid(), name: name, sets: [{ kg: '', reps: '' }] };
+    state.active.exercises.push(ex);
+    save(); render();
+    var f = document.getElementById('kg-' + ex.id + '-0'); if (f) f.focus();
+  });
+
+  var rt;
+  window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (view === 'home') drawCharts(); if (view === 'cut') drawWeight(); }, 150); });
+
+  window.addEventListener('online', sync);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') sync(); });
+  setTimeout(sync, 400);
+  setInterval(function () { if (document.visibilityState === 'visible') sync(); }, 60000);
+  if (state.active) view = 'workout';
+  render();
+
+  /* Offline működés, csak a telepíthető változatban (ahol van manifest) */
+  try {
+    if ('serviceWorker' in navigator && document.querySelector('link[rel="manifest"]')) {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    }
+  } catch (e) {}
+})();
+</script>
+
+</body>
+</html>
