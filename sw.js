@@ -1,9 +1,10 @@
 // Vasnapló offline cache
-const CACHE = 'vasnaplo-v4';
+const CACHE = 'vasnaplo-v5';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
+  // cache: 'reload' = mindig a friss fájlt kérjük le, ne a böngésző régi példányát
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))));
   self.skipWaiting();
 });
 
@@ -48,7 +49,11 @@ self.addEventListener('fetch', (e) => {
   if (url.origin !== self.location.origin && !fonts) return;
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then((hit) => {
-      const net = fetch(e.request).then((res) => {
+      // Oldalbetöltésnél (navigate) nem lehet módosítani a kérést, ezért újat készítünk belőle.
+      const fresh = e.request.mode === 'navigate'
+        ? new Request(e.request.url, { cache: 'no-cache', credentials: 'same-origin' })
+        : new Request(e.request, { cache: 'no-cache' });
+      const net = fetch(fresh).then((res) => {
         if (res && (res.ok || res.type === 'opaque')) {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(e.request, copy));

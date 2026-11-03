@@ -406,6 +406,143 @@ input:focus { border-color: var(--accent); outline: none; }
 .feed-pts { color: var(--accent); font-weight: 600; white-space: nowrap; }
 .sync { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.82rem; color: var(--muted); }
 .sync .btn { min-height: 40px; font-size: 0.95rem; }
+
+/* Állatkák */
+.pet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pet-card { background: var(--surface); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pet-card.me { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.pet-stage { aspect-ratio: 1; max-width: 100%; border-radius: 14px; background: radial-gradient(circle at 50% 58%, var(--surface-2), var(--surface) 72%); }
+.pet-stage svg, .pet-home-art svg { width: 100%; height: 100%; display: block; }
+.pet-name { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; line-height: 1.1; }
+.pet-mood { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); line-height: 1.3; }
+.pet-mood i { width: 8px; height: 8px; border-radius: 50%; flex: none; background: #7bd88f; }
+.pet-mood.m-sleepy i { background: #cfc3ff; }
+.pet-mood.m-sad i { background: #7cc8ff; }
+.pet-bar { display: block; height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.pet-bar span { display: block; height: 100%; border-radius: 99px; background: var(--accent); min-width: 6px; }
+.pet-next { font-size: 0.78rem; color: var(--muted); line-height: 1.3; }
+.pet-empty { justify-content: flex-start; }
+.vitrin { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; padding-top: 4px; border-top: 1px solid var(--line); margin-top: 2px; font-size: 0.75rem; color: var(--muted); }
+.vitrin .vitrin-pet { width: 30px; height: 30px; }
+.pet-home { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--surface); border-radius: var(--radius); padding: 10px 14px 10px 10px; }
+.pet-home:active { background: var(--surface-2); }
+.pet-home-art { width: 76px; height: 76px; flex: none; border-radius: 12px; background: radial-gradient(circle at 50% 58%, var(--surface-2), var(--surface) 72%); }
+.pet-home-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.pet-home-txt b { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
+.pet-home-txt small { color: var(--muted); font-size: 0.8rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .pet-svg.idle { animation: petbob 2.6s ease-in-out infinite; transform-origin: 50% 90%; }
+  .pet-svg.idle.mood-sad { animation-duration: 4s; }
+  .pet-svg .wing { transform-box: view-box; transform-origin: 100px 110px; animation: flap 1.5s ease-in-out infinite; }
+  .pet-svg.mood-sleepy .wing, .pet-svg.mood-sad .wing { animation-duration: 3.2s; }
+  .pet-svg .pet-z { animation: zfloat 2.4s ease-in-out infinite; }
+  @keyframes petbob { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-4%) scale(1.01, .99); } }
+  @keyframes flap { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.82); } }
+  @keyframes zfloat { 0%, 100% { opacity: .35; transform: translateY(4px); } 50% { opacity: 1; transform: translateY(-4px); } }
+}
+
+/* Fejlődés-animáció */
+.evo-back { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; overflow: hidden;
+  background: radial-gradient(circle at 50% 42%, #3a2844, #08060c 70%);
+  opacity: 0; transition: opacity .25s ease;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.evo-back.on { opacity: 1; }
+.evo-rays { position: absolute; left: 50%; top: 42%; width: 170vmax; height: 170vmax; margin: -85vmax 0 0 -85vmax; opacity: 0;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--accent) 22%, transparent) 0deg 9deg, transparent 9deg 22deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 55%); mask-image: radial-gradient(circle, #000 0%, transparent 55%); }
+.evo-back.done .evo-rays { opacity: 1; transition: opacity .4s ease; }
+.evo-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+.evo-inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 380px; text-align: center; }
+.evo-kicker { font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+.evo-title { font-family: var(--font-display); font-weight: 700; font-size: 2.2rem; line-height: 1.05; color: var(--fg); }
+.evo-stage { position: relative; width: min(64vw, 250px); aspect-ratio: 1; }
+.evo-glow { position: absolute; inset: 8%; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 55%, transparent), transparent 68%); opacity: .35; }
+.evo-pet { position: absolute; inset: 0; }
+.evo-pet svg { width: 100%; height: 100%; display: block; }
+.evo-burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+.evo-burst i { position: absolute; width: 10px; height: 14px; left: -5px; top: -7px; border-radius: 2px; opacity: 0; }
+.evo-burst i.round { width: 10px; height: 10px; border-radius: 50%; }
+.evo-text { display: flex; flex-direction: column; gap: 6px; min-height: 72px; color: var(--fg); font-size: 1.05rem; line-height: 1.4; }
+.evo-text b { font-family: var(--font-display); font-size: 1.6rem; color: var(--accent); }
+.evo-text span { color: var(--fg); }
+.evo-text span + span { color: var(--muted); font-size: 0.95rem; }
+.evo-btn { min-width: 200px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .evo-pet.charge { animation: charge 1.9s cubic-bezier(.4, 0, .9, .6) forwards; }
+  .evo-back:not(.done) .evo-glow { animation: glowup 1.9s ease-in forwards; }
+  .evo-back.flash .evo-flash { animation: flash .7s ease-out forwards; }
+  .evo-pet.pop { animation: pop .75s cubic-bezier(.2, 1.6, .4, 1) both; }
+  .evo-back.done .evo-glow { opacity: .7; animation: glowpulse 2.4s ease-in-out infinite; }
+  .evo-back.done .evo-rays { animation: spin 14s linear infinite; }
+  .evo-burst i { animation: confetti 1.5s cubic-bezier(.15, .7, .3, 1) var(--delay) forwards; }
+  .evo-back.done .evo-title { animation: titlein .5s cubic-bezier(.2, 1.4, .4, 1) both; }
+  .evo-back.done .evo-text { animation: fadeup .5s .25s ease-out both; }
+  .evo-btn:not([hidden]) { animation: fadeup .4s ease-out both; }
+  @keyframes charge {
+    0% { transform: translate(0, 0) scale(1); filter: brightness(1); }
+    20% { transform: translate(-2px, 1px) scale(1.01); }
+    40% { transform: translate(3px, -2px) scale(1.03); filter: brightness(1.2); }
+    55% { transform: translate(-4px, 2px) rotate(-3deg) scale(1.04); }
+    70% { transform: translate(5px, -3px) rotate(4deg) scale(1.06); filter: brightness(1.6); }
+    85% { transform: translate(-6px, 3px) rotate(-5deg) scale(1.08); filter: brightness(2.2); }
+    100% { transform: translate(0, 0) scale(1.12); filter: brightness(4) saturate(0); }
+  }
+  @keyframes glowup { from { opacity: .3; transform: scale(.8); } to { opacity: 1; transform: scale(1.5); } }
+  @keyframes flash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes pop { 0% { transform: scale(.2); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
+  @keyframes glowpulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes confetti {
+    0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 120px)) rotate(var(--rot)); }
+  }
+  @keyframes titlein { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes fadeup { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+}
+
+/* Közös színpad */
+.scene { position: relative; overflow: hidden; border-radius: 22px; padding: 14px 12px 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 16%, var(--bg)) 0%, var(--surface) 58%); }
+.scene-sky { position: absolute; inset: 0 0 45% 0; pointer-events: none; }
+.scene-sky i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--fg); opacity: .5; }
+.scene-sky i:nth-child(1) { left: 8%; top: 14%; }
+.scene-sky i:nth-child(2) { left: 28%; top: 6%; width: 2px; height: 2px; }
+.scene-sky i:nth-child(3) { left: 47%; top: 18%; }
+.scene-sky i:nth-child(4) { left: 66%; top: 8%; width: 2px; height: 2px; }
+.scene-sky i:nth-child(5) { left: 84%; top: 16%; }
+.scene-sky i:nth-child(6) { left: 93%; top: 5%; width: 2px; height: 2px; }
+.scene-arts { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.scene-arts::before { content: ""; position: absolute; left: -12px; right: -12px; bottom: 2%; height: 26%;
+  background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--accent) 14%, var(--surface-2)) 0%, var(--surface-2) 45%, transparent 72%); }
+.actor-art { position: relative; aspect-ratio: 1; max-width: 100%; }
+.actor-art svg { width: 100%; height: 100%; display: block; position: relative; }
+.actor-art::after { content: ""; position: absolute; left: 26%; right: 26%; bottom: 3%; height: 7%; border-radius: 50%; background: #000; opacity: .28; filter: blur(3px); }
+.actor-art.ghost { display: grid; place-items: center; }
+.actor-art.ghost span { font-family: var(--font-display); font-size: 3rem; font-weight: 700; color: var(--muted); opacity: .5; position: relative; z-index: 1; }
+.scene-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 2px; }
+.actor { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 5px; min-width: 0; }
+.actor-name { font-size: 0.85rem; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.actor.me .actor-name { color: var(--accent); font-weight: 600; }
+.actor-pts { font-family: var(--font-display); font-weight: 700; font-size: 1.9rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.actor-pts small { font-family: var(--font-body); font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+.actor-stage { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin-top: 4px; }
+.actor .pet-bar { width: 100%; max-width: 150px; }
+.actor .pet-mood { justify-content: center; }
+.actor .dots { justify-content: center; }
+.actor .vitrin { justify-content: center; width: 100%; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; background: var(--surface); border-radius: 14px; }
+.seg button { min-height: 44px; border-radius: 10px; font-weight: 600; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.seg button[aria-selected="true"] { background: var(--surface-2); color: var(--fg); }
+.seg-badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 0.75rem; font-weight: 700; display: inline-grid; place-items: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .scene-sky i { animation: twinkle 3s ease-in-out infinite; }
+  .scene-sky i:nth-child(2n) { animation-delay: 1.2s; }
+  .scene-sky i:nth-child(3n) { animation-delay: 2.1s; }
+  @keyframes twinkle { 0%, 100% { opacity: .15; } 50% { opacity: .7; } }
+}
 </style>
 </head>
 <body>
@@ -772,6 +909,7 @@ input:focus { border-color: var(--accent); outline: none; }
       h += '<button class="btn btn-ghost" data-act="start" data-day="">Üres</button></div></section>';
     }
 
+    h += petHomeCard();
     h += '<div class="sec"><div class="sec-head"><h2>Statisztika</h2>' + (src.sample ? '<span class="chip">Példa adatok</span>' : '') + '</div>';
     if (src.sample) h += '<p class="note">Az első mentett edzésed után itt a saját számaid jelennek meg.</p>';
     h += '<div class="stats">';
@@ -1128,6 +1266,7 @@ input:focus { border-color: var(--accent); outline: none; }
   function hdr(extra) { extra = extra || {}; extra.apikey = SUPA_KEY; return extra; }
   function sync() {
     if (!SUPA_URL || syncing) return;
+    var evChanged = false;
     if (state.social.name && !state.social.joined) {
       state.social.joined = true;
       pushEvent({ kind: 'join', points: 0, label: 'csatlakozott', ref: 'join' });
@@ -1154,6 +1293,8 @@ input:focus { border-color: var(--accent); outline: none; }
       if (!r.ok) throw new Error('http ' + r.status);
       return r.json();
     }).then(function (rows) {
+      var sig = function (list) { return list.length + ':' + (list[0] ? list[0].id : ''); };
+      evChanged = sig(rows) !== sig(state.social.events);
       state.social.events = rows;
       state.social.lastSync = Date.now();
       state.social.error = failed ? 'error' : '';
@@ -1162,8 +1303,10 @@ input:focus { border-color: var(--accent); outline: none; }
     }).then(function () {
       syncing = false;
       save();
-      if (view === 'social' && !document.querySelector('[data-armed="1"]')) render();
+      var typing = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+      if ((view === 'social' || (view === 'home' && evChanged)) && !typing && !document.querySelector('[data-armed="1"]') && !document.querySelector('.evo-back')) render();
       checkNotify();
+      checkPets();
     });
   }
 
@@ -1207,6 +1350,7 @@ input:focus { border-color: var(--accent); outline: none; }
       m.remove();
       if (btn.dataset.m === 'go' && view !== 'workout') go('social');
       checkNotify();
+      checkPets();
     });
     document.body.appendChild(m);
     var first = m.querySelector('[data-m="go"]');
@@ -1237,6 +1381,39 @@ input:focus { border-color: var(--accent); outline: none; }
     return h + '<span>' + Math.min(n, 9) + '/3 a héten</span></div>';
   }
 
+  var scTab = null;
+  function actorArt(p) {
+    return '<div class="actor-art">' + petSvg(p.type, p.stage, p.cycle, p.mood, 'idle') + '</div>';
+  }
+  function actorInfo(p, label, pts, week, mine, name) {
+    var pct = Math.round(((p.within - PET_STEPS[p.stage]) / (p.next - PET_STEPS[p.stage])) * 100);
+    return '<div class="actor' + (mine ? ' me' : '') + '">' +
+      '<span class="actor-name">' + esc(label) + '</span>' +
+      '<span class="actor-pts">' + pts + '<small> pont</small></span>' +
+      dotsHtml(week) +
+      '<span class="actor-stage">' + PETS[p.type].names[p.stage] + '</span>' +
+      '<span class="pet-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>' +
+      '<span class="pet-next">még ' + p.left + ' edzés: ' + PETS[p.type].names[p.stage + 1] + '</span>' +
+      '<span class="pet-mood m-' + p.mood + '"><i></i>' + esc(moodText(p, mine, name)) + '</span>' +
+      vitrinHtml(p) + '</div>';
+  }
+  function sceneHtml(evs, partnerWho, pName, myPts, pPts) {
+    var me = petState(evs, APP_ID);
+    var them = partnerWho ? petState(evs, partnerWho) : null;
+    var h = '<section class="scene" aria-label="Állatkák">';
+    h += '<div class="scene-sky" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>';
+    h += '<div class="scene-arts">' + actorArt(me) + (them ? actorArt(them) : '<div class="actor-art ghost"><span>?</span></div>') + '</div>';
+    h += '<div class="scene-info">' + actorInfo(me, state.social.name + ' (te)', myPts, weekCount(evs, APP_ID), true, '');
+    if (them) h += actorInfo(them, pName, pPts, weekCount(evs, partnerWho), false, pName);
+    else h += '<div class="actor"><span class="actor-name">Párod</span><span class="pet-next">Az állatkája akkor jelenik meg, amikor csatlakozik.</span></div>';
+    h += '</div></section>';
+    return h;
+  }
+  function segBtn(id, label, count, active) {
+    return '<button role="tab" aria-selected="' + (id === active) + '" data-act="sc-tab" data-t="' + id + '">' + label +
+      (count ? '<span class="seg-badge">' + count + '</span>' : '') + '</button>';
+  }
+
   function socialView() {
     var so = state.social;
     var h = '<div class="wrap">';
@@ -1258,54 +1435,60 @@ input:focus { border-color: var(--accent); outline: none; }
     var myPts = pointsOf(evs, APP_ID);
     var pPts = partnerWho ? pointsOf(evs, partnerWho) : 0;
 
-    h += pushPanel(false);
-    h += '<div class="sc-cards">';
-    h += '<div class="sc-card me"><span class="sc-name">' + esc(so.name) + ' (te)</span><span class="sc-pts">' + myPts + ' <small>pont</small></span>' + dotsHtml(weekCount(evs, APP_ID)) + '</div>';
-    h += '<div class="sc-card"><span class="sc-name">' + esc(pName) + '</span><span class="sc-pts">' + pPts + ' <small>pont</small></span>' + dotsHtml(partnerWho ? weekCount(evs, partnerWho) : 0) + '</div>';
-    h += '</div>';
-
     var fulfilled = {};
     evs.forEach(function (e) { if (e.kind === 'fulfill') fulfilled[e.ref] = 1; });
     var todo = evs.filter(function (e) { return e.kind === 'redeem' && e.who !== APP_ID && !fulfilled[e.id]; });
     var waiting = evs.filter(function (e) { return e.kind === 'redeem' && e.who === APP_ID && !fulfilled[e.id]; });
 
-    if (todo.length) {
-      h += '<div class="sec"><h2>Teljesítendő</h2><div class="todo">';
-      todo.forEach(function (e) {
-        h += '<div class="reward"><span class="reward-txt"><b>' + esc(e.label) + '</b><small>' + esc(pName) + ' beváltotta · ' + esc(timeLabel(e.created_at)) + '</small></span><button class="btn btn-primary btn-small" data-act="fulfill" data-id="' + esc(e.id) + '">Teljesítve</button></div>';
-      });
-      h += '</div></div>';
-    }
-    if (waiting.length) {
-      h += '<div class="sec"><h2>Beváltásra vár</h2><div class="pr">';
-      waiting.forEach(function (e) {
-        h += '<div class="pr-row"><span class="pr-name">' + esc(e.label) + '</span><span class="pr-val"><small>' + esc(timeLabel(e.created_at)) + '</small></span></div>';
-      });
-      h += '</div><p class="note">' + esc(pName) + ' appjában látszik, mit kértél. Ha teljesítette, kipipálja.</p></div>';
-    }
+    h += sceneHtml(evs, partnerWho, pName, myPts, pPts);
+    h += pushPanel(false);
 
-    h += '<div class="sec"><h2>Bolt</h2><div class="pr">';
-    REWARDS.forEach(function (r) {
-      var ok = myPts >= r[2];
-      h += '<div class="reward"><span class="reward-txt"><b>' + esc(r[1]) + '</b>' + (r[3] ? '<span class="reward-desc">' + esc(r[3]) + '</span>' : '') + '<small class="reward-cost">' + r[2] + ' pont</small></span>';
-      h += '<button class="btn ' + (ok ? 'btn-primary' : 'btn-ghost') + ' btn-small" data-act="redeem" data-r="' + r[0] + '"' + (ok ? '' : ' disabled') + '>' + (ok ? 'Beváltom' : 'Még ' + (r[2] - myPts)) + '</button></div>';
-    });
-    h += '</div><p class="note">Edzés: 10 pont · teljes hét (3. edzés): +10 · új rekord: +3. Naponta 1 edzés számít, legalább 10 kitöltött sorozattal.</p></div>';
+    var tab = scTab || (todo.length ? 'todo' : 'bolt');
+    h += '<div class="seg" role="tablist" aria-label="Közös részek">' + segBtn('bolt', 'Bolt', 0, tab) + segBtn('todo', 'Teendők', todo.length, tab) + segBtn('naplo', 'Napló', 0, tab) + '</div>';
 
-    if (evs.length) {
-      h += '<div class="sec"><h2>Napló</h2><div class="pr">';
-      evs.slice(0, 20).forEach(function (e) {
-        var mine = e.who === APP_ID;
-        var who = e.name || pName;
-        var txt = e.kind === 'join' ? (mine ? 'Csatlakoztál a közös részhez' : who + ' csatlakozott a közös részhez')
-          : e.kind === 'workout' ? (mine ? 'Edzettél: ' : who + ' edzett: ') + e.label
-          : e.kind === 'redeem' ? (mine ? 'Beváltottad: ' : who + ' beváltotta: ') + e.label
-          : e.kind === 'revoke' ? (mine ? 'Töröltél egy edzést: ' : who + ' törölt egy edzést: ') + e.label
-          : (mine ? 'Teljesítetted: ' : who + ' teljesítette: ') + e.label;
-        var pts = e.points > 0 ? '+' + e.points : e.points < 0 ? '−' + Math.abs(e.points) : '';
-        h += '<div class="feed-row"><span>' + esc(txt) + (pts ? ' <span class="feed-pts">' + pts + '</span>' : '') + '</span><time>' + (e.pending ? 'küldésre vár' : esc(timeLabel(e.created_at))) + '</time></div>';
+    if (tab === 'bolt') {
+      h += '<div class="pr">';
+      REWARDS.forEach(function (r) {
+        var ok = myPts >= r[2];
+        h += '<div class="reward"><span class="reward-txt"><b>' + esc(r[1]) + '</b>' + (r[3] ? '<span class="reward-desc">' + esc(r[3]) + '</span>' : '') + '<small class="reward-cost">' + r[2] + ' pont</small></span>';
+        h += '<button class="btn ' + (ok ? 'btn-primary' : 'btn-ghost') + ' btn-small" data-act="redeem" data-r="' + r[0] + '"' + (ok ? '' : ' disabled') + '>' + (ok ? 'Beváltom' : 'Még ' + (r[2] - myPts)) + '</button></div>';
       });
-      h += '</div></div>';
+      h += '</div><p class="note">Edzés: 10 pont · teljes hét (3. edzés): +10 · új rekord: +3. Naponta 1 edzés számít, legalább 10 kitöltött sorozattal. Minden pontot érő edzés az állatkádat is növeli.</p>';
+    } else if (tab === 'todo') {
+      if (!todo.length && !waiting.length) {
+        h += '<div class="empty">Nincs teendő. Ha valamelyikőtök bevált valamit a boltban, itt jelenik meg.</div>';
+      }
+      if (todo.length) {
+        h += '<div class="sec"><h2>' + esc(pName) + ' kérte</h2><div class="todo">';
+        todo.forEach(function (e) {
+          h += '<div class="reward"><span class="reward-txt"><b>' + esc(e.label) + '</b><small>' + esc(timeLabel(e.created_at)) + '</small></span><button class="btn btn-primary btn-small" data-act="fulfill" data-id="' + esc(e.id) + '">Teljesítve</button></div>';
+        });
+        h += '</div></div>';
+      }
+      if (waiting.length) {
+        h += '<div class="sec"><h2>Te kérted</h2><div class="pr">';
+        waiting.forEach(function (e) {
+          h += '<div class="pr-row"><span class="pr-name">' + esc(e.label) + '</span><span class="pr-val"><small>' + esc(timeLabel(e.created_at)) + '</small></span></div>';
+        });
+        h += '</div><p class="note">' + esc(pName) + ' appjában látszik, mit kértél. Ha teljesítette, kipipálja.</p></div>';
+      }
+    } else {
+      if (!evs.length) h += '<div class="empty">Még üres a napló.</div>';
+      else {
+        h += '<div class="pr">';
+        evs.slice(0, 30).forEach(function (e) {
+          var mine = e.who === APP_ID;
+          var who = e.name || pName;
+          var txt = e.kind === 'join' ? (mine ? 'Csatlakoztál a közös részhez' : who + ' csatlakozott a közös részhez')
+            : e.kind === 'workout' ? (mine ? 'Edzettél: ' : who + ' edzett: ') + e.label
+            : e.kind === 'redeem' ? (mine ? 'Beváltottad: ' : who + ' beváltotta: ') + e.label
+            : e.kind === 'revoke' ? (mine ? 'Töröltél egy edzést: ' : who + ' törölt egy edzést: ') + e.label
+            : (mine ? 'Teljesítetted: ' : who + ' teljesítette: ') + e.label;
+          var pts = e.points > 0 ? '+' + e.points : e.points < 0 ? '−' + Math.abs(e.points) : '';
+          h += '<div class="feed-row"><span>' + esc(txt) + (pts ? ' <span class="feed-pts">' + pts + '</span>' : '') + '</span><time>' + (e.pending ? 'küldésre vár' : esc(timeLabel(e.created_at))) + '</time></div>';
+        });
+        h += '</div>';
+      }
     }
 
     var status = so.error === 'offline' ? 'Nincs net. Amint lesz, elküldöm, ami vár.' : so.error ? 'Nem sikerült frissíteni. Próbáld újra kicsit később.' : so.lastSync ? 'Frissítve: ' + new Date(so.lastSync).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }) : 'Még nem frissült';
@@ -1386,13 +1569,382 @@ input:focus { border-color: var(--accent); outline: none; }
     }
     var perm = Notification.permission;
     if (perm === 'denied') {
-      return '<div class="weigh"><b>Értesítések</b><p class="note">Le vannak tiltva. A telefon beállításaiban, az app értesítéseinél tudod engedélyezni.</p></div>';
+      return compact ? '' : '<div class="weigh"><b>Értesítések</b><p class="note">Le vannak tiltva. A telefon beállításaiban, az app értesítéseinél tudod engedélyezni.</p></div>';
     }
     if (perm === 'granted' && state.social.pushOn) {
       return compact ? '<div class="sync"><span>Értesítések bekapcsolva</span><button class="btn btn-ghost" data-act="push-test">Próbaértesítés</button></div>' : '';
     }
     if (compact) return '';
     return '<div class="weigh"><b>Értesítések</b><p class="note">Kapj értesítést, ha a párod edzett, beváltott valamit vagy teljesítette, amit kértél. Akkor is, ha az app be van zárva.</p><button class="btn btn-primary" data-act="push-on">Értesítések bekapcsolása</button></div>';
+  }
+
+  /* ---------- Állatkák: rajzok ---------- */
+  var INK = '#2a1d2e';
+  var LION_COLORS = [['#f0b45a', '#b8642a'], ['#f3e9d8', '#cdb79a'], ['#e3a468', '#5e3b24'], ['#f6c87a', '#e0703a']];
+
+  function petEyes(x, y, s, mood, dx) {
+    var lx = x - dx, rx = x + dx, out = '';
+    if (mood === 'sleepy') {
+      [lx, rx].forEach(function (ex) {
+        out += '<path d="M' + (ex - 4.5 * s) + ' ' + y + ' Q' + ex + ' ' + (y + 4 * s) + ' ' + (ex + 4.5 * s) + ' ' + y + '" stroke="' + INK + '" stroke-width="' + (2.2 * s) + '" fill="none" stroke-linecap="round"/>';
+      });
+    } else {
+      var ry = mood === 'sad' ? 3.4 : 4.4;
+      [lx, rx].forEach(function (ex) {
+        out += '<ellipse cx="' + ex + '" cy="' + y + '" rx="' + (3.4 * s) + '" ry="' + (ry * s) + '" fill="' + INK + '"/>';
+        out += '<circle cx="' + (ex + 1.2 * s) + '" cy="' + (y - 1.6 * s) + '" r="' + (1.3 * s) + '" fill="#fff"/>';
+      });
+      if (mood === 'sad') {
+        out += '<path d="M' + (lx - 5 * s) + ' ' + (y - 6 * s) + ' L' + (lx + 4 * s) + ' ' + (y - 9.5 * s) + '" stroke="' + INK + '" stroke-width="' + (1.8 * s) + '" stroke-linecap="round"/>';
+        out += '<path d="M' + (rx - 4 * s) + ' ' + (y - 9.5 * s) + ' L' + (rx + 5 * s) + ' ' + (y - 6 * s) + '" stroke="' + INK + '" stroke-width="' + (1.8 * s) + '" stroke-linecap="round"/>';
+        out += '<path d="M' + (lx - 1 * s) + ' ' + (y + 6 * s) + ' q' + (-2.4 * s) + ' ' + (4 * s) + ' 0 ' + (5.6 * s) + ' q' + (2.4 * s) + ' ' + (-1.6 * s) + ' 0 ' + (-5.6 * s) + 'z" fill="#7cc8ff"/>';
+      }
+    }
+    return out;
+  }
+  function petMouth(x, y, s, mood) {
+    if (mood === 'sleepy') return '<ellipse cx="' + x + '" cy="' + (y + 1 * s) + '" rx="' + (2.2 * s) + '" ry="' + (2.6 * s) + '" fill="' + INK + '"/>';
+    if (mood === 'sad') return '<path d="M' + (x - 5 * s) + ' ' + (y + 3.5 * s) + ' Q' + x + ' ' + (y - 1.5 * s) + ' ' + (x + 5 * s) + ' ' + (y + 3.5 * s) + '" stroke="' + INK + '" stroke-width="' + (2 * s) + '" fill="none" stroke-linecap="round"/>';
+    return '<path d="M' + (x - 5.5 * s) + ' ' + y + ' Q' + x + ' ' + (y + 6 * s) + ' ' + (x + 5.5 * s) + ' ' + y + '" stroke="' + INK + '" stroke-width="' + (2 * s) + '" fill="none" stroke-linecap="round"/>';
+  }
+  function petCheeks(x, y, s, dx, mood) {
+    if (mood === 'sad') return '';
+    return '<ellipse cx="' + (x - dx) + '" cy="' + y + '" rx="' + (4.2 * s) + '" ry="' + (2.6 * s) + '" fill="#ff8fb1" opacity=".55"/>' +
+      '<ellipse cx="' + (x + dx) + '" cy="' + y + '" rx="' + (4.2 * s) + '" ry="' + (2.6 * s) + '" fill="#ff8fb1" opacity=".55"/>';
+  }
+  function petFace(x, y, s, mood) {
+    return petEyes(x, y, s, mood, 9 * s) + petCheeks(x, y + 6 * s, s, 15 * s, mood) + petMouth(x, y + 7 * s, s, mood);
+  }
+  function petZzz(mood, x, y) {
+    if (mood !== 'sleepy') return '';
+    return '<g class="pet-z" fill="#cfc3ff" font-family="Fredoka, Nunito, sans-serif" font-weight="600">' +
+      '<text x="' + x + '" y="' + y + '" font-size="18">z</text><text x="' + (x + 14) + '" y="' + (y - 14) + '" font-size="13">z</text></g>';
+  }
+
+  var CAT_COLORS = [
+    { fur: '#f7f1ec', patch: '#f2b48a', A: '#e57fd3', B: '#a985f0', bow: '#e57fd3' },
+    { fur: '#aab3c4', patch: '#78839a', A: '#6ec6ff', B: '#4fd1b5', bow: '#6ec6ff' },
+    { fur: '#f3b26e', patch: '#d9863f', A: '#ff9ec4', B: '#ffd36b', bow: '#ff7aa8' },
+    { fur: '#e6d3bd', patch: '#7a5a48', A: '#f2d95c', B: '#8fdc6a', bow: '#f2d95c' }
+  ];
+  function catMouth(x, y, s, mood) {
+    if (mood !== 'happy') return petMouth(x, y + 1 * s, s * 0.9, mood);
+    return '<path d="M' + (x - 6 * s) + ' ' + y + ' Q' + (x - 3 * s) + ' ' + (y + 4.5 * s) + ' ' + x + ' ' + (y + 0.5 * s) +
+      ' Q' + (x + 3 * s) + ' ' + (y + 4.5 * s) + ' ' + (x + 6 * s) + ' ' + y + '" stroke="' + INK + '" stroke-width="' + (1.9 * s) + '" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+  function catWings(big, A, B) {
+    if (!big) {
+      return '<g class="wing wing-l"><ellipse cx="54" cy="112" rx="26" ry="17" transform="rotate(-38 54 112)" fill="' + A + '"/><ellipse cx="57" cy="113" rx="13" ry="7" transform="rotate(-38 57 113)" fill="#fff" opacity=".4"/><ellipse cx="62" cy="138" rx="15" ry="11" transform="rotate(30 62 138)" fill="' + B + '"/></g>' +
+        '<g class="wing wing-r"><ellipse cx="146" cy="112" rx="26" ry="17" transform="rotate(38 146 112)" fill="' + A + '"/><ellipse cx="143" cy="113" rx="13" ry="7" transform="rotate(38 143 113)" fill="#fff" opacity=".4"/><ellipse cx="138" cy="138" rx="15" ry="11" transform="rotate(-30 138 138)" fill="' + B + '"/></g>';
+    }
+    return '<g class="wing wing-l"><ellipse cx="46" cy="104" rx="44" ry="32" transform="rotate(-30 46 104)" fill="' + A + '"/>' +
+      '<ellipse cx="52" cy="106" rx="24" ry="16" transform="rotate(-30 52 106)" fill="#fff" opacity=".3"/><circle cx="34" cy="96" r="7" fill="' + B + '"/>' +
+      '<ellipse cx="58" cy="152" rx="28" ry="21" transform="rotate(28 58 152)" fill="' + B + '"/><circle cx="52" cy="156" r="5.5" fill="#fff" opacity=".45"/></g>' +
+      '<g class="wing wing-r"><ellipse cx="154" cy="104" rx="44" ry="32" transform="rotate(30 154 104)" fill="' + A + '"/>' +
+      '<ellipse cx="148" cy="106" rx="24" ry="16" transform="rotate(30 148 106)" fill="#fff" opacity=".3"/><circle cx="166" cy="96" r="7" fill="' + B + '"/>' +
+      '<ellipse cx="142" cy="152" rx="28" ry="21" transform="rotate(-28 142 152)" fill="' + B + '"/><circle cx="148" cy="156" r="5.5" fill="#fff" opacity=".45"/></g>';
+  }
+  function sparkle(x, y, r, color) {
+    return '<path class="spark" d="M' + x + ' ' + (y - r) + ' Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + ' Q' + x + ' ' + y + ' ' + x + ' ' + (y + r) +
+      ' Q' + x + ' ' + y + ' ' + (x - r) + ' ' + y + ' Q' + x + ' ' + y + ' ' + x + ' ' + (y - r) + 'Z" fill="' + color + '"/>';
+  }
+  function catSvg(stage, cycle, mood) {
+    var c = CAT_COLORS[cycle % CAT_COLORS.length];
+    var k = [0.7, 0.8, 0.9, 0.95, 1][stage];
+    var g = '';
+    if (stage === 4) g += sparkle(30, 40, 9, '#fff3b0') + sparkle(172, 52, 7, '#fff3b0') + sparkle(176, 168, 6, '#ffd6f2') + sparkle(22, 172, 6, '#ffd6f2');
+    g += '<g transform="translate(100 120) scale(' + k + ') translate(-100 -120)">';
+    if (stage === 3) g += catWings(false, c.A, c.B);
+    if (stage === 4) g += catWings(true, c.A, c.B);
+    // farok
+    g += '<path d="M132 168 Q172 166 168 128 Q166 112 152 112" stroke="' + c.fur + '" stroke-width="12" fill="none" stroke-linecap="round"/>';
+    g += '<path d="M160 116 Q166 112 152 112" stroke="' + c.patch + '" stroke-width="12" fill="none" stroke-linecap="round"/>';
+    // test
+    g += '<ellipse cx="100" cy="158" rx="40" ry="32" fill="' + c.fur + '"/>';
+    g += '<ellipse cx="100" cy="166" rx="22" ry="18" fill="#fff" opacity=".5"/>';
+    g += '<ellipse cx="124" cy="146" rx="12" ry="10" fill="' + c.patch + '" opacity=".9"/>';
+    g += '<ellipse cx="82" cy="186" rx="13" ry="9" fill="' + c.fur + '" stroke="' + c.patch + '" stroke-opacity=".4" stroke-width="2"/>';
+    g += '<ellipse cx="118" cy="186" rx="13" ry="9" fill="' + c.fur + '" stroke="' + c.patch + '" stroke-opacity=".4" stroke-width="2"/>';
+    g += '<path d="M78 186 v4 M82 186 v5 M86 186 v4 M114 186 v4 M118 186 v5 M122 186 v4" stroke="' + c.patch + '" stroke-opacity=".5" stroke-width="1.6" stroke-linecap="round"/>';
+    // fülek
+    g += '<path d="M60 84 L64 38 L96 62 Z" fill="' + c.fur + '" stroke="' + c.fur + '" stroke-width="6" stroke-linejoin="round"/>';
+    g += '<path d="M140 84 L136 38 L104 62 Z" fill="' + c.patch + '" stroke="' + c.patch + '" stroke-width="6" stroke-linejoin="round"/>';
+    g += '<path d="M68 72 L70 50 L86 62 Z" fill="#ffb3c7"/><path d="M132 72 L130 50 L114 62 Z" fill="#ffb3c7"/>';
+    // fej
+    g += '<ellipse cx="100" cy="94" rx="44" ry="38" fill="' + c.fur + '"/>';
+    g += '<path d="M118 60 Q140 66 142 92 Q130 84 118 82 Z" fill="' + c.patch + '" opacity=".9"/>';
+    g += '<ellipse cx="100" cy="112" rx="16" ry="11" fill="#fff" opacity=".7"/>';
+    // bajusz
+    g += '<path d="M70 108 h-20 M70 114 l-18 5 M130 108 h20 M130 114 l18 5" stroke="' + INK + '" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/>';
+    g += petEyes(100, 94, 1.45, mood, 17) + petCheeks(100, 108, 1.1, 26, mood);
+    g += '<path d="M96 104 Q100 101 104 104 Q102 108 100 108.5 Q98 108 96 104 Z" fill="#ff8fb1"/>';
+    g += catMouth(100, 110, 1.05, mood);
+    // masni
+    if (stage >= 2) {
+      g += '<g transform="translate(70 56) rotate(-18)"><path d="M0 0 L-13 -8 L-13 8 Z M0 0 L13 -8 L13 8 Z" fill="' + c.bow + '" stroke="' + c.bow + '" stroke-width="3" stroke-linejoin="round"/><circle r="4.5" fill="#fff" opacity=".85"/></g>';
+    }
+    // gombolyag
+    if (stage === 1) {
+      g += '<circle cx="46" cy="178" r="15" fill="' + c.A + '"/><path d="M34 172 Q46 166 58 176 M34 182 Q46 176 58 186 M40 166 Q50 178 46 192" stroke="#fff" stroke-opacity=".45" stroke-width="2" fill="none"/>';
+      g += '<path d="M60 182 Q72 196 82 190" stroke="' + c.A + '" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
+    }
+    g += '</g>';
+    g += petZzz(mood, 150, 50);
+    return g;
+  }
+
+  function lionSvg(stage, cycle, mood) {
+    var c = LION_COLORS[cycle % LION_COLORS.length], F = c[0], M = c[1];
+    var k = [0.66, 0.78, 0.88, 0.95, 1][stage];
+    var g = '<g transform="translate(100 118) scale(' + k + ') translate(-100 -118)">';
+    // farok
+    if (stage >= 1) {
+      g += '<path d="M138 158 Q170 150 166 118" stroke="' + F + '" stroke-width="9" fill="none" stroke-linecap="round"/>';
+      g += '<circle cx="166" cy="114" r="' + (stage >= 3 ? 11 : 8) + '" fill="' + M + '"/>';
+    }
+    // test
+    g += '<ellipse cx="100" cy="156" rx="46" ry="34" fill="' + F + '"/>';
+    g += '<ellipse cx="100" cy="164" rx="26" ry="20" fill="#fff4e0" opacity=".55"/>';
+    if (stage <= 1) {
+      g += '<circle cx="74" cy="146" r="4" fill="' + M + '" opacity=".35"/><circle cx="126" cy="150" r="4.5" fill="' + M + '" opacity=".35"/><circle cx="118" cy="138" r="3" fill="' + M + '" opacity=".35"/>';
+    }
+    g += '<ellipse cx="80" cy="186" rx="15" ry="9" fill="' + F + '" stroke="' + M + '" stroke-opacity=".35" stroke-width="2"/>';
+    g += '<ellipse cx="120" cy="186" rx="15" ry="9" fill="' + F + '" stroke="' + M + '" stroke-opacity=".35" stroke-width="2"/>';
+    // sörény
+    function ring(n, radius, r, color) {
+      var out = '';
+      for (var i = 0; i < n; i++) {
+        var a = (Math.PI * 2 * i) / n;
+        out += '<circle cx="' + (100 + Math.cos(a) * radius).toFixed(1) + '" cy="' + (92 + Math.sin(a) * radius).toFixed(1) + '" r="' + r + '" fill="' + color + '"/>';
+      }
+      return out;
+    }
+    if (stage === 1) g += '<circle cx="92" cy="56" r="7" fill="' + M + '"/><circle cx="102" cy="53" r="8" fill="' + M + '"/><circle cx="111" cy="57" r="6" fill="' + M + '"/>';
+    if (stage === 2) g += ring(12, 38, 13, M);
+    if (stage === 3) g += ring(14, 44, 17, M);
+    if (stage === 4) g += ring(16, 52, 20, M) + ring(12, 40, 16, M);
+    // fülek
+    var earY = stage >= 3 ? 58 : 64;
+    g += '<circle cx="70" cy="' + earY + '" r="13" fill="' + F + '"/><circle cx="130" cy="' + earY + '" r="13" fill="' + F + '"/>';
+    g += '<circle cx="70" cy="' + earY + '" r="7" fill="#f2a7a0"/><circle cx="130" cy="' + earY + '" r="7" fill="#f2a7a0"/>';
+    // fej
+    g += '<circle cx="100" cy="94" r="38" fill="' + F + '"/>';
+    g += '<ellipse cx="100" cy="112" rx="19" ry="13" fill="#fff4e0"/>';
+    g += '<path d="M93 104 Q100 100 107 104 Q104 111 100 112 Q96 111 93 104 Z" fill="#6b3b2a"/>';
+    g += petEyes(100, 90, 1.25, mood, 15) + petCheeks(100, 104, 1.1, 24, mood) + petMouth(100, 116, 1.05, mood);
+    if (stage === 4) {
+      // súlyzó a vasoroszlánnak
+      g += '<g transform="translate(156 184) rotate(-14) scale(.82)"><rect x="-22" y="-3" width="44" height="6" rx="3" fill="#9aa3ad"/>' +
+        '<rect x="-30" y="-12" width="9" height="24" rx="3" fill="#4a525c"/><rect x="21" y="-12" width="9" height="24" rx="3" fill="#4a525c"/>' +
+        '<rect x="-36" y="-8" width="6" height="16" rx="2" fill="#4a525c"/><rect x="30" y="-8" width="6" height="16" rx="2" fill="#4a525c"/></g>';
+    }
+    g += '</g>';
+    g += petZzz(mood, 150, 56);
+    return g;
+  }
+
+  function petSvg(type, stage, cycle, mood, cls) {
+    var inner = type === 'lion' ? lionSvg(stage, cycle, mood) : catSvg(stage, cycle, mood);
+    return '<svg class="pet-svg ' + (cls || '') + ' mood-' + mood + '" viewBox="0 0 200 200" role="img" aria-hidden="true">' + inner + '</svg>';
+  }
+
+  /* ---------- Állatkák: fejlődés ---------- */
+  var PET_STEPS = [0, 3, 12, 24];
+  var PET_CYCLE = 36;
+  var PETS = {
+    cat: {
+      names: ['Kiscica', 'Játékos cica', 'Nagy cica', 'Tündércica', 'Pillangócica'],
+      fresh: 'egy új kiscica',
+      mine: [
+        'A kiscicád megnőtt, már igazi játékos cica!',
+        'A játékos cicád szép nagy cicává nőtt!',
+        'A cicádnak apró szárnyai nőttek! Tündércica lett belőle.',
+        'A cicád kibontotta a szárnyait: Pillangócica!'
+      ],
+      theirs: [
+        '{n} kiscicája megnőtt, már igazi játékos cica!',
+        '{n} játékos cicája szép nagy cicává nőtt!',
+        '{n} cicájának apró szárnyai nőttek! Tündércica lett belőle.',
+        '{n} cicája kibontotta a szárnyait: Pillangócica!'
+      ]
+    },
+    lion: {
+      names: ['Kölyök', 'Játékos kölyök', 'Fiatal oroszlán', 'Erős oroszlán', 'Vasoroszlán'],
+      fresh: 'egy új kölyök',
+      mine: [
+        'A kölyköd megnőtt, már igazi játékos kölyök!',
+        'A kölyködből fiatal oroszlán lett!',
+        'A fiatal oroszlánod erős oroszlánná nőtt!',
+        'Az oroszlánod elérte a végső alakját: Vasoroszlán!'
+      ],
+      theirs: [
+        '{n} kölyke megnőtt, már igazi játékos kölyök!',
+        '{n} kölykéből fiatal oroszlán lett!',
+        '{n} fiatal oroszlánja erős oroszlánná nőtt!',
+        '{n} oroszlánja elérte a végső alakját: Vasoroszlán!'
+      ]
+    }
+  };
+  function petType(who) { return who === 'vas' ? 'lion' : 'cat'; }
+  function petWorkouts(evs, who) {
+    var revoked = {};
+    evs.forEach(function (e) { if (e.kind === 'revoke') revoked[e.ref] = 1; });
+    return evs.filter(function (e) { return e.who === who && e.kind === 'workout' && !revoked[e.ref]; });
+  }
+  function petState(evs, who) {
+    var ws = petWorkouts(evs, who);
+    var count = ws.length;
+    var cycle = Math.floor(count / PET_CYCLE);
+    var within = count - cycle * PET_CYCLE;
+    var stage = 0;
+    for (var i = 0; i < PET_STEPS.length; i++) if (within >= PET_STEPS[i]) stage = i;
+    var next = stage < 3 ? PET_STEPS[stage + 1] : PET_CYCLE;
+    var last = ws.reduce(function (a, e) { var d = String(e.day || '').slice(0, 10); return d > a ? d : a; }, '');
+    var days = last ? Math.round((parseIso(today()) - parseIso(last)) / 86400000) : null;
+    var mood = days === null ? 'happy' : days <= 2 ? 'happy' : days <= 4 ? 'sleepy' : 'sad';
+    return { type: petType(who), count: count, cycle: cycle, stage: stage, within: within, next: next, left: next - within, days: days, mood: mood, key: cycle * 5 + stage };
+  }
+  function moodText(p, mine, name) {
+    if (p.days === null) return mine ? 'Várja az első edzésed' : 'Várja ' + name + ' első edzését';
+    if (p.mood === 'happy') return p.days === 0 ? (mine ? 'Vidám, ma edzettél' : 'Vidám, ma edzett') : (mine ? 'Vidám, nemrég edzettél' : 'Vidám, nemrég edzett');
+    if (p.mood === 'sleepy') return 'Álmos, ' + p.days + ' napja nem ' + (mine ? 'edzettél' : 'edzett');
+    return 'Szomorú, ' + p.days + ' napja nem ' + (mine ? 'edzettél' : 'edzett');
+  }
+  function petNextLabel(p) {
+    var names = PETS[p.type].names;
+    return 'Következő: ' + names[p.stage + 1] + ' · még ' + p.left + ' edzés';
+  }
+  function vitrinHtml(p) {
+    if (!p.cycle) return '';
+    var h = '<div class="vitrin" aria-label="Vitrin: ' + p.cycle + ' kész">';
+    for (var i = 0; i < Math.min(p.cycle, 8); i++) h += petSvg(p.type, 4, i, 'happy', 'vitrin-pet');
+    if (p.cycle > 8) h += '<span>+' + (p.cycle - 8) + '</span>';
+    return h + '</div>';
+  }
+  function petCard(p, label, mine, name) {
+    var pct = Math.round(((p.within - PET_STEPS[p.stage]) / (p.next - PET_STEPS[p.stage])) * 100);
+    var h = '<div class="pet-card' + (mine ? ' me' : '') + '">';
+    h += '<span class="sc-name">' + esc(label) + '</span>';
+    h += '<div class="pet-stage">' + petSvg(p.type, p.stage, p.cycle, p.mood, 'idle') + '</div>';
+    h += '<b class="pet-name">' + PETS[p.type].names[p.stage] + '</b>';
+    h += '<span class="pet-mood m-' + p.mood + '"><i></i>' + esc(moodText(p, mine, name)) + '</span>';
+    h += '<div class="pet-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></div>';
+    h += '<span class="pet-next">' + esc(petNextLabel(p)) + '</span>';
+    h += vitrinHtml(p);
+    return h + '</div>';
+  }
+  function petsSection(evs, partnerWho, pName) {
+    var me = petState(evs, APP_ID);
+    var h = '<div class="sec"><h2>Állatkák</h2><div class="pet-grid">';
+    h += petCard(me, state.social.name + ' (te)', true, '');
+    if (partnerWho) h += petCard(petState(evs, partnerWho), pName, false, pName);
+    else h += '<div class="pet-card pet-empty"><span class="sc-name">Párod</span><p class="note">A párod állatkája akkor jelenik meg, amikor csatlakozik a közös részhez.</p></div>';
+    h += '</div><p class="note">Minden pontot érő edzés egy lépés. Kb. 3 hónap rendszeres edzéssel éri el a végső alakját, aztán a vitrinbe kerül, és új kör indul.</p></div>';
+    return h;
+  }
+  function petHomeCard() {
+    if (!SUPA_URL || !state.social || !state.social.name) return '';
+    var p = petState(allEvents(), APP_ID);
+    var pct = Math.round(((p.within - PET_STEPS[p.stage]) / (p.next - PET_STEPS[p.stage])) * 100);
+    return '<button class="pet-home" data-act="tab-social" aria-label="Állatkád megnyitása a Közös fülön">' +
+      '<span class="pet-home-art">' + petSvg(p.type, p.stage, p.cycle, p.mood, 'idle') + '</span>' +
+      '<span class="pet-home-txt"><b>' + PETS[p.type].names[p.stage] + '</b><small>' + esc(moodText(p, true, '')) + '</small>' +
+      '<span class="pet-bar"><span style="width:' + pct + '%"></span></span><small>' + esc(petNextLabel(p)) + '</small></span></button>';
+  }
+
+  /* ---------- Fejlődés-animáció ---------- */
+  function checkPets() {
+    if (!SUPA_URL || !state.social || !state.social.name) return;
+    if (view === 'workout' || document.querySelector('.evo-back') || document.getElementById('sc-modal')) return;
+    if (!state.social.petSeen) state.social.petSeen = {};
+    var seen = state.social.petSeen;
+    var evs = allEvents();
+    var whos = [APP_ID];
+    evs.forEach(function (e) { if (whos.indexOf(e.who) < 0) whos.push(e.who); });
+    for (var i = 0; i < whos.length; i++) {
+      var who = whos[i];
+      var p = petState(evs, who);
+      if (seen[who] == null || p.key < seen[who]) { seen[who] = p.key; save(); continue; }
+      if (p.key > seen[who]) {
+        var from = seen[who];
+        var cyc = Math.floor(from / 5), st = from % 5;
+        var nameEv = evs.filter(function (e) { return e.who === who && e.name; })[0];
+        showEvolution({
+          who: who, type: petType(who), cycle: cyc, from: st, to: st + 1,
+          mine: who === APP_ID, name: nameEv ? nameEv.name : 'A párod',
+          nextKey: st + 1 >= 4 ? (cyc + 1) * 5 : from + 1
+        });
+        return;
+      }
+    }
+  }
+
+  function showEvolution(ev) {
+    var reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    var cfg = PETS[ev.type];
+    var final = ev.to === 4;
+    var text = (ev.mine ? cfg.mine[ev.to - 1] : cfg.theirs[ev.to - 1].replace('{n}', ev.name));
+    var o = document.createElement('div');
+    o.className = 'evo-back';
+    o.setAttribute('role', 'dialog');
+    o.setAttribute('aria-modal', 'true');
+    o.setAttribute('aria-label', 'Fejlődés');
+    o.innerHTML = '<div class="evo-rays"></div><div class="evo-flash"></div>' +
+      '<div class="evo-inner"><div class="evo-kicker">' + (ev.mine ? 'Az állatkád' : esc(ev.name) + ' állatkája') + '</div>' +
+      '<div class="evo-title">Valami történik…</div>' +
+      '<div class="evo-stage"><div class="evo-glow"></div><div class="evo-pet">' + petSvg(ev.type, ev.from, ev.cycle, 'happy') + '</div><div class="evo-burst"></div></div>' +
+      '<div class="evo-text" aria-live="polite"></div>' +
+      '<button class="btn btn-primary evo-btn" hidden>' + (final ? 'Irány a vitrin!' : 'Szuper!') + '</button></div>';
+    document.body.appendChild(o);
+    requestAnimationFrame(function () { o.classList.add('on'); });
+    var pet = o.querySelector('.evo-pet');
+    if (!reduce) pet.classList.add('charge');
+
+    setTimeout(function () {
+      o.classList.add('flash');
+      try { if (navigator.vibrate) navigator.vibrate([40, 60, 40]); } catch (e) {}
+      pet.classList.remove('charge');
+      pet.innerHTML = petSvg(ev.type, ev.to, ev.cycle, 'happy', 'idle');
+      pet.classList.add('pop');
+      o.classList.add('done');
+      if (!reduce) burst(o.querySelector('.evo-burst'), final ? 70 : 44);
+      o.querySelector('.evo-title').textContent = final ? 'Kész! 🎉' : 'Fejlődés!';
+      o.querySelector('.evo-text').innerHTML = '<b>' + cfg.names[ev.to] + '</b><span>' + esc(text) + '</span>' +
+        (final ? '<span>Bekerült a vitrinbe, és érkezett ' + cfg.fresh + '.</span>' : '');
+      setTimeout(function () {
+        var btn = o.querySelector('.evo-btn');
+        btn.hidden = false;
+        btn.focus();
+      }, reduce ? 100 : 700);
+    }, reduce ? 500 : 1900);
+
+    o.querySelector('.evo-btn').addEventListener('click', function () {
+      state.social.petSeen[ev.who] = ev.nextKey;
+      save();
+      o.classList.remove('on');
+      setTimeout(function () {
+        o.remove();
+        if (view === 'social' || view === 'home') render();
+        checkPets();
+      }, 250);
+    });
+  }
+
+  function burst(host, n) {
+    var colors = ['#f2c230', '#e57fd3', '#a985f0', '#6ec6ff', '#8fdc6a', '#ff7a8a', '#ffffff'];
+    for (var i = 0; i < n; i++) {
+      var s = document.createElement('i');
+      var a = Math.random() * Math.PI * 2;
+      var d = 90 + Math.random() * 130;
+      s.style.setProperty('--dx', (Math.cos(a) * d).toFixed(0) + 'px');
+      s.style.setProperty('--dy', (Math.sin(a) * d - 40).toFixed(0) + 'px');
+      s.style.setProperty('--rot', (Math.random() * 720 - 360).toFixed(0) + 'deg');
+      s.style.setProperty('--delay', (Math.random() * 120).toFixed(0) + 'ms');
+      s.style.background = colors[i % colors.length];
+      if (i % 3 === 0) s.className = 'round';
+      host.appendChild(s);
+    }
   }
 
   function render() {
@@ -1464,6 +2016,8 @@ input:focus { border-color: var(--accent); outline: none; }
       toast(added + ' edzés és ' + (data.weights || []).length + ' mérés betöltve');
     } else if (act === 'tab-social') {
       go('social'); sync();
+    } else if (act === 'sc-tab') {
+      scTab = b.dataset.t; render();
     } else if (act === 'push-on') {
       enablePush();
     } else if (act === 'push-test') {
@@ -1524,7 +2078,7 @@ input:focus { border-color: var(--accent); outline: none; }
       state.active = null;
       selWeek = null; selPoint = null;
       save();
-      detailId = w.id; go('detail'); toast(pts ? 'Edzés elmentve · +' + pts + ' pont' : 'Edzés elmentve');
+      detailId = w.id; go('detail'); toast(pts ? 'Edzés elmentve · +' + pts + ' pont' : 'Edzés elmentve'); setTimeout(checkPets, 1400);
     } else if (act === 'del-workout') {
       if (!armed(b, 'Koppints újra a törléshez')) return;
       var dw = state.workouts.filter(function (x) { return x.id === b.dataset.id; })[0];
