@@ -1258,6 +1258,7 @@ input:focus { border-color: var(--accent); outline: none; }
     var myPts = pointsOf(evs, APP_ID);
     var pPts = partnerWho ? pointsOf(evs, partnerWho) : 0;
 
+    h += pushPanel(false);
     h += '<div class="sc-cards">';
     h += '<div class="sc-card me"><span class="sc-name">' + esc(so.name) + ' (te)</span><span class="sc-pts">' + myPts + ' <small>pont</small></span>' + dotsHtml(weekCount(evs, APP_ID)) + '</div>';
     h += '<div class="sc-card"><span class="sc-name">' + esc(pName) + '</span><span class="sc-pts">' + pPts + ' <small>pont</small></span>' + dotsHtml(partnerWho ? weekCount(evs, partnerWho) : 0) + '</div>';
@@ -1310,8 +1311,88 @@ input:focus { border-color: var(--accent); outline: none; }
     var status = so.error === 'offline' ? 'Nincs net. Amint lesz, elküldöm, ami vár.' : so.error ? 'Nem sikerült frissíteni. Próbáld újra kicsit később.' : so.lastSync ? 'Frissítve: ' + new Date(so.lastSync).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }) : 'Még nem frissült';
     if (so.outbox.length) status += ' (' + so.outbox.length + ' küldésre vár)';
     h += '<div class="sync"><span>' + esc(status) + '</span><button class="btn btn-ghost" data-act="sync">Frissítés</button></div>';
+    h += pushPanel(true);
     h += '</div>' + tabBar('social');
     return h;
+  }
+
+  /* ---------- Értesítések (web push) ---------- */
+  var VAPID_PUBLIC = 'BIqTJ7hq4_ZZew1vpXMc83Dg130_MupA5kb7OkDn-2E-SJxjhqEfxpQBe9wBKDjp2Oe4AQWY31PMss5djxBH3Mk';
+  function pushSupported() {
+    try {
+      return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && !!document.querySelector('link[rel="manifest"]');
+    } catch (e) { return false; }
+  }
+  function vapidBytes() {
+    var s = VAPID_PUBLIC.replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    var bin = atob(s), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function saveSub(sub) {
+    var j = sub.toJSON();
+    return fetch(SUPA_URL + '/rest/v1/push_subs', {
+      method: 'POST',
+      headers: hdr({ 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }),
+      body: JSON.stringify({ endpoint: j.endpoint, pair: PAIR, who: APP_ID, p256dh: j.keys.p256dh, auth: j.keys.auth })
+    }).then(function (r) {
+      if (!r.ok && r.status !== 409) throw new Error('http ' + r.status);
+      return sub;
+    });
+  }
+  function getOrCreateSub() {
+    return navigator.serviceWorker.ready.then(function (reg) {
+      return reg.pushManager.getSubscription().then(function (sub) {
+        return sub || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: vapidBytes() });
+      });
+    });
+  }
+  function enablePush() {
+    if (!pushSupported()) return;
+    var ask;
+    try { ask = Notification.requestPermission(); } catch (e) { ask = null; }
+    Promise.resolve(ask).then(function (perm) {
+      perm = perm || Notification.permission;
+      if (perm !== 'granted') { toast('Nem engedélyezted az értesítéseket'); render(); return; }
+      return getOrCreateSub().then(saveSub).then(function () {
+        state.social.pushOn = true; save(); render(); toast('Értesítések bekapcsolva');
+      });
+    }).catch(function () { toast('Nem sikerült bekapcsolni. Próbáld újra.'); render(); });
+  }
+  function testPush() {
+    getOrCreateSub().then(saveSub).then(function (sub) {
+      return fetch(SUPA_URL + '/functions/v1/notify', {
+        method: 'POST',
+        headers: hdr({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ test: true, endpoint: sub.endpoint })
+      });
+    }).then(function (r) {
+      if (!r.ok) throw new Error('http ' + r.status);
+      return r.json();
+    }).then(function (res) {
+      toast(res.sent ? 'Próbaértesítés elküldve' : 'Nem ment ki az értesítés. Kapcsold ki és be újra.');
+    }).catch(function () { toast('Nem sikerült elküldeni. Van net?'); });
+  }
+  function refreshPush() {
+    try {
+      if (!state.social.pushOn || !pushSupported() || Notification.permission !== 'granted') return;
+      getOrCreateSub().then(saveSub).catch(function () {});
+    } catch (e) {}
+  }
+  function pushPanel(compact) {
+    if (!pushSupported()) {
+      return compact ? '' : '<div class="weigh"><b>Értesítések</b><p class="note">Értesítéshez nyisd meg az appot a kezdőképernyőről. iPhone-on előbb telepíteni kell: Safari → Megosztás → Hozzáadás a főképernyőhöz.</p></div>';
+    }
+    var perm = Notification.permission;
+    if (perm === 'denied') {
+      return '<div class="weigh"><b>Értesítések</b><p class="note">Le vannak tiltva. A telefon beállításaiban, az app értesítéseinél tudod engedélyezni.</p></div>';
+    }
+    if (perm === 'granted' && state.social.pushOn) {
+      return compact ? '<div class="sync"><span>Értesítések bekapcsolva</span><button class="btn btn-ghost" data-act="push-test">Próbaértesítés</button></div>' : '';
+    }
+    if (compact) return '';
+    return '<div class="weigh"><b>Értesítések</b><p class="note">Kapj értesítést, ha a párod edzett, beváltott valamit vagy teljesítette, amit kértél. Akkor is, ha az app be van zárva.</p><button class="btn btn-primary" data-act="push-on">Értesítések bekapcsolása</button></div>';
   }
 
   function render() {
@@ -1383,6 +1464,10 @@ input:focus { border-color: var(--accent); outline: none; }
       toast(added + ' edzés és ' + (data.weights || []).length + ' mérés betöltve');
     } else if (act === 'tab-social') {
       go('social'); sync();
+    } else if (act === 'push-on') {
+      enablePush();
+    } else if (act === 'push-test') {
+      testPush(); toast('Küldés…');
     } else if (act === 'sync') {
       sync(); toast('Frissítés…');
     } else if (act === 'redeem') {
@@ -1510,7 +1595,9 @@ input:focus { border-color: var(--accent); outline: none; }
   window.addEventListener('online', sync);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') sync(); });
   setTimeout(sync, 400);
+  setTimeout(refreshPush, 1500);
   setInterval(function () { if (document.visibilityState === 'visible') sync(); }, 60000);
+  if (location.hash === '#kozos') view = 'social';
   if (state.active) view = 'workout';
   render();
 
