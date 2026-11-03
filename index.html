@@ -431,14 +431,43 @@ input:focus { border-color: var(--accent); outline: none; }
 .pet-home-txt b { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
 .pet-home-txt small { color: var(--muted); font-size: 0.8rem; }
 
+.pet-svg .pet-body, .pet-svg .pet-shadow, .pet-svg .aura { transform-box: view-box; transform-origin: 100px 185px; }
+.pet-svg .aura { transform-origin: 100px 110px; }
+.pet-svg .wing { transform-box: view-box; transform-origin: 100px 118px; }
 @media (prefers-reduced-motion: no-preference) {
-  .pet-svg.idle { animation: petbob 2.6s ease-in-out infinite; transform-origin: 50% 90%; }
-  .pet-svg.idle.mood-sad { animation-duration: 4s; }
-  .pet-svg .wing { transform-box: view-box; transform-origin: 100px 110px; animation: flap 1.5s ease-in-out infinite; }
-  .pet-svg.mood-sleepy .wing, .pet-svg.mood-sad .wing { animation-duration: 3.2s; }
+  /* 1. alak: lélegzés */
+  .pet-svg.idle.st-0 .pet-body { animation: breathe 3s ease-in-out infinite; }
+  /* 2. alak: ugrálás */
+  .pet-svg.idle.st-1 .pet-body { animation: hop 1.9s ease-in-out infinite; }
+  .pet-svg.idle.st-1 .pet-shadow { animation: hopshadow 1.9s ease-in-out infinite; }
+  /* 3. alak: ringatózás */
+  .pet-svg.idle.st-2 .pet-body { animation: sway 4.2s ease-in-out infinite; }
+  /* 4. alak: lebegés */
+  .pet-svg.idle.st-3 .pet-body { animation: float 3.4s ease-in-out infinite; }
+  .pet-svg.idle.st-3 .pet-shadow { animation: floatshadow 3.4s ease-in-out infinite; }
+  /* 5. alak: lebegés és fénylés */
+  .pet-svg.idle.st-4 .pet-body { animation: float 3s ease-in-out infinite; }
+  .pet-svg.idle.st-4 .pet-shadow { animation: floatshadow 3s ease-in-out infinite; }
+  .pet-svg.idle .aura { animation: aura 3s ease-in-out infinite; }
+  .pet-svg.idle .wing { animation: flap 1.6s ease-in-out infinite; }
+  .pet-svg.idle .spark { animation: twinkle 2.2s ease-in-out infinite; }
+  .pet-svg.idle.mood-sad .pet-body, .pet-svg.idle.mood-sleepy .pet-body { animation-duration: 5.5s; }
+  .pet-svg.idle.mood-sad .wing, .pet-svg.idle.mood-sleepy .wing { animation-duration: 3.4s; }
   .pet-svg .pet-z { animation: zfloat 2.4s ease-in-out infinite; }
-  @keyframes petbob { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-4%) scale(1.01, .99); } }
-  @keyframes flap { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.82); } }
+  @keyframes breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.02, 1.045); } }
+  @keyframes hop {
+    0%, 55%, 100% { transform: translateY(0) scale(1, 1); }
+    64% { transform: translateY(0) scale(1.05, .94); }
+    76% { transform: translateY(-10px) scale(.98, 1.03); }
+    88% { transform: translateY(0) scale(1.03, .97); }
+  }
+  @keyframes hopshadow { 0%, 64%, 100% { transform: scale(1); opacity: .28; } 76% { transform: scale(.8); opacity: .18; } }
+  @keyframes sway { 0%, 100% { transform: rotate(-1.8deg); } 50% { transform: rotate(1.8deg); } }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes floatshadow { 0%, 100% { transform: scale(1); opacity: .28; } 50% { transform: scale(.82); opacity: .16; } }
+  @keyframes aura { 0%, 100% { opacity: .7; transform: scale(.96); } 50% { opacity: 1; transform: scale(1.04); } }
+  @keyframes flap { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.84); } }
+  @keyframes twinkle { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
   @keyframes zfloat { 0%, 100% { opacity: .35; transform: translateY(4px); } 50% { opacity: 1; transform: translateY(-4px); } }
 }
 
@@ -1580,8 +1609,21 @@ input:focus { border-color: var(--accent); outline: none; }
 
   /* ---------- Állatkák: rajzok ---------- */
   var INK = '#2a1d2e';
-  var LION_COLORS = [['#f0b45a', '#b8642a'], ['#f3e9d8', '#cdb79a'], ['#e3a468', '#5e3b24'], ['#f6c87a', '#e0703a']];
+  var LION_COLORS = [['#e9a956', '#9c5424'], ['#efe3cf', '#b9a184'], ['#dc9a5c', '#4f3120'], ['#f0bd6e', '#c8622e']];
+  var CAT_COLORS = [
+    { fur: '#f5efe9', patch: '#eaa36f', A: '#e57fd3', B: '#a985f0', collar: '#e57fd3' },
+    { fur: '#a9b2c3', patch: '#6f7a91', A: '#6ec6ff', B: '#4fd1b5', collar: '#6ec6ff' },
+    { fur: '#efaa62', patch: '#cf7c36', A: '#ff9ec4', B: '#ffd36b', collar: '#ff7aa8' },
+    { fur: '#e4d1bb', patch: '#6f5242', A: '#f2d95c', B: '#8fdc6a', collar: '#c9a227' }
+  ];
+  var BELLY = '#fff6ec';
 
+  function shade(hex, f) {
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    var t = f < 0 ? 0 : 255, p = Math.abs(f);
+    r = Math.round((t - r) * p + r); g = Math.round((t - g) * p + g); b = Math.round((t - b) * p + b);
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
   function petEyes(x, y, s, mood, dx) {
     var lx = x - dx, rx = x + dx, out = '';
     if (mood === 'sleepy') {
@@ -1607,145 +1649,241 @@ input:focus { border-color: var(--accent); outline: none; }
     if (mood === 'sad') return '<path d="M' + (x - 5 * s) + ' ' + (y + 3.5 * s) + ' Q' + x + ' ' + (y - 1.5 * s) + ' ' + (x + 5 * s) + ' ' + (y + 3.5 * s) + '" stroke="' + INK + '" stroke-width="' + (2 * s) + '" fill="none" stroke-linecap="round"/>';
     return '<path d="M' + (x - 5.5 * s) + ' ' + y + ' Q' + x + ' ' + (y + 6 * s) + ' ' + (x + 5.5 * s) + ' ' + y + '" stroke="' + INK + '" stroke-width="' + (2 * s) + '" fill="none" stroke-linecap="round"/>';
   }
+  function catMouth(x, y, s, mood) {
+    if (mood !== 'happy') return petMouth(x, y + 1 * s, s * 0.9, mood);
+    return '<path d="M' + (x - 6 * s) + ' ' + y + ' Q' + (x - 3 * s) + ' ' + (y + 4.5 * s) + ' ' + x + ' ' + (y + 0.5 * s) +
+      ' Q' + (x + 3 * s) + ' ' + (y + 4.5 * s) + ' ' + (x + 6 * s) + ' ' + y + '" stroke="' + INK + '" stroke-width="' + (1.9 * s) + '" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
   function petCheeks(x, y, s, dx, mood) {
     if (mood === 'sad') return '';
-    return '<ellipse cx="' + (x - dx) + '" cy="' + y + '" rx="' + (4.2 * s) + '" ry="' + (2.6 * s) + '" fill="#ff8fb1" opacity=".55"/>' +
-      '<ellipse cx="' + (x + dx) + '" cy="' + y + '" rx="' + (4.2 * s) + '" ry="' + (2.6 * s) + '" fill="#ff8fb1" opacity=".55"/>';
-  }
-  function petFace(x, y, s, mood) {
-    return petEyes(x, y, s, mood, 9 * s) + petCheeks(x, y + 6 * s, s, 15 * s, mood) + petMouth(x, y + 7 * s, s, mood);
+    return '<ellipse cx="' + (x - dx) + '" cy="' + y + '" rx="' + (4.2 * s) + '" ry="' + (2.6 * s) + '" fill="#ff8fb1" opacity=".5"/>' +
+      '<ellipse cx="' + (x + dx) + '" cy="' + y + '" rx="' + (4.2 * s) + '" ry="' + (2.6 * s) + '" fill="#ff8fb1" opacity=".5"/>';
   }
   function petZzz(mood, x, y) {
     if (mood !== 'sleepy') return '';
     return '<g class="pet-z" fill="#cfc3ff" font-family="Fredoka, Nunito, sans-serif" font-weight="600">' +
       '<text x="' + x + '" y="' + y + '" font-size="18">z</text><text x="' + (x + 14) + '" y="' + (y - 14) + '" font-size="13">z</text></g>';
   }
-
-  var CAT_COLORS = [
-    { fur: '#f7f1ec', patch: '#f2b48a', A: '#e57fd3', B: '#a985f0', bow: '#e57fd3' },
-    { fur: '#aab3c4', patch: '#78839a', A: '#6ec6ff', B: '#4fd1b5', bow: '#6ec6ff' },
-    { fur: '#f3b26e', patch: '#d9863f', A: '#ff9ec4', B: '#ffd36b', bow: '#ff7aa8' },
-    { fur: '#e6d3bd', patch: '#7a5a48', A: '#f2d95c', B: '#8fdc6a', bow: '#f2d95c' }
-  ];
-  function catMouth(x, y, s, mood) {
-    if (mood !== 'happy') return petMouth(x, y + 1 * s, s * 0.9, mood);
-    return '<path d="M' + (x - 6 * s) + ' ' + y + ' Q' + (x - 3 * s) + ' ' + (y + 4.5 * s) + ' ' + x + ' ' + (y + 0.5 * s) +
-      ' Q' + (x + 3 * s) + ' ' + (y + 4.5 * s) + ' ' + (x + 6 * s) + ' ' + y + '" stroke="' + INK + '" stroke-width="' + (1.9 * s) + '" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
-  }
-  function catWings(big, A, B) {
-    if (!big) {
-      return '<g class="wing wing-l"><ellipse cx="54" cy="112" rx="26" ry="17" transform="rotate(-38 54 112)" fill="' + A + '"/><ellipse cx="57" cy="113" rx="13" ry="7" transform="rotate(-38 57 113)" fill="#fff" opacity=".4"/><ellipse cx="62" cy="138" rx="15" ry="11" transform="rotate(30 62 138)" fill="' + B + '"/></g>' +
-        '<g class="wing wing-r"><ellipse cx="146" cy="112" rx="26" ry="17" transform="rotate(38 146 112)" fill="' + A + '"/><ellipse cx="143" cy="113" rx="13" ry="7" transform="rotate(38 143 113)" fill="#fff" opacity=".4"/><ellipse cx="138" cy="138" rx="15" ry="11" transform="rotate(-30 138 138)" fill="' + B + '"/></g>';
-    }
-    return '<g class="wing wing-l"><ellipse cx="46" cy="104" rx="44" ry="32" transform="rotate(-30 46 104)" fill="' + A + '"/>' +
-      '<ellipse cx="52" cy="106" rx="24" ry="16" transform="rotate(-30 52 106)" fill="#fff" opacity=".3"/><circle cx="34" cy="96" r="7" fill="' + B + '"/>' +
-      '<ellipse cx="58" cy="152" rx="28" ry="21" transform="rotate(28 58 152)" fill="' + B + '"/><circle cx="52" cy="156" r="5.5" fill="#fff" opacity=".45"/></g>' +
-      '<g class="wing wing-r"><ellipse cx="154" cy="104" rx="44" ry="32" transform="rotate(30 154 104)" fill="' + A + '"/>' +
-      '<ellipse cx="148" cy="106" rx="24" ry="16" transform="rotate(30 148 106)" fill="#fff" opacity=".3"/><circle cx="166" cy="96" r="7" fill="' + B + '"/>' +
-      '<ellipse cx="142" cy="152" rx="28" ry="21" transform="rotate(-28 142 152)" fill="' + B + '"/><circle cx="148" cy="156" r="5.5" fill="#fff" opacity=".45"/></g>';
-  }
   function sparkle(x, y, r, color) {
     return '<path class="spark" d="M' + x + ' ' + (y - r) + ' Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + ' Q' + x + ' ' + y + ' ' + x + ' ' + (y + r) +
       ' Q' + x + ' ' + y + ' ' + (x - r) + ' ' + y + ' Q' + x + ' ' + y + ' ' + x + ' ' + (y - r) + 'Z" fill="' + color + '"/>';
   }
+  function shadowEl(rx) {
+    return '<ellipse class="pet-shadow" cx="100" cy="185" rx="' + rx + '" ry="6" fill="#000" opacity=".28"/>';
+  }
+  function whiskers(cx, cy, s) {
+    return '<path d="M' + (cx - 13 * s) + ' ' + cy + ' h' + (-16 * s) + ' M' + (cx - 13 * s) + ' ' + (cy + 5 * s) + ' l' + (-15 * s) + ' ' + (4 * s) +
+      ' M' + (cx + 13 * s) + ' ' + cy + ' h' + (16 * s) + ' M' + (cx + 13 * s) + ' ' + (cy + 5 * s) + ' l' + (15 * s) + ' ' + (4 * s) +
+      '" stroke="' + INK + '" stroke-opacity=".3" stroke-width="' + (1.5 * s) + '" stroke-linecap="round"/>';
+  }
+
+  /* --- cica részei --- */
+  function catHead(cx, cy, s, c, mood, baby) {
+    var g = '';
+    g += '<path d="M' + (cx - 25 * s) + ' ' + (cy - 8 * s) + ' L' + (cx - 23 * s) + ' ' + (cy - (baby ? 36 : 42) * s) + ' L' + (cx - 4 * s) + ' ' + (cy - 22 * s) + ' Z" fill="' + c.fur + '" stroke="' + c.fur + '" stroke-width="' + (5 * s) + '" stroke-linejoin="round"/>';
+    g += '<path d="M' + (cx + 25 * s) + ' ' + (cy - 8 * s) + ' L' + (cx + 23 * s) + ' ' + (cy - (baby ? 36 : 42) * s) + ' L' + (cx + 4 * s) + ' ' + (cy - 22 * s) + ' Z" fill="' + c.patch + '" stroke="' + c.patch + '" stroke-width="' + (5 * s) + '" stroke-linejoin="round"/>';
+    g += '<path d="M' + (cx - 20 * s) + ' ' + (cy - 13 * s) + ' L' + (cx - 19 * s) + ' ' + (cy - (baby ? 29 : 34) * s) + ' L' + (cx - 9 * s) + ' ' + (cy - 21 * s) + ' Z" fill="#f7b0c2"/>';
+    g += '<path d="M' + (cx + 20 * s) + ' ' + (cy - 13 * s) + ' L' + (cx + 19 * s) + ' ' + (cy - (baby ? 29 : 34) * s) + ' L' + (cx + 9 * s) + ' ' + (cy - 21 * s) + ' Z" fill="#f7b0c2"/>';
+    g += '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + (30 * s) + '" ry="' + (26 * s) + '" fill="' + c.fur + '"/>';
+    g += '<path d="M' + (cx + 10 * s) + ' ' + (cy - 25 * s) + ' Q' + (cx + 31 * s) + ' ' + (cy - 20 * s) + ' ' + (cx + 30 * s) + ' ' + (cy + 1 * s) + ' Q' + (cx + 20 * s) + ' ' + (cy - 7 * s) + ' ' + (cx + 9 * s) + ' ' + (cy - 9 * s) + ' Z" fill="' + c.patch + '"/>';
+    g += '<ellipse cx="' + cx + '" cy="' + (cy + 12 * s) + '" rx="' + (12 * s) + '" ry="' + (8 * s) + '" fill="' + BELLY + '" opacity=".85"/>';
+    g += whiskers(cx, cy + 11 * s, s);
+    g += petEyes(cx, cy - 2 * s, (baby ? 1.25 : 1.1) * s, mood, (baby ? 12.5 : 12) * s);
+    if (baby) g += petCheeks(cx, cy + 8 * s, 0.9 * s, 20 * s, mood);
+    g += '<path d="M' + (cx - 4 * s) + ' ' + (cy + 6 * s) + ' Q' + cx + ' ' + (cy + 3 * s) + ' ' + (cx + 4 * s) + ' ' + (cy + 6 * s) + ' Q' + (cx + 2 * s) + ' ' + (cy + 10 * s) + ' ' + cx + ' ' + (cy + 10.5 * s) + ' Q' + (cx - 2 * s) + ' ' + (cy + 10 * s) + ' ' + (cx - 4 * s) + ' ' + (cy + 6 * s) + ' Z" fill="#f08aa8"/>';
+    g += catMouth(cx, cy + 12 * s, 0.85 * s, mood);
+    return g;
+  }
+  function catAdultBody(c) {
+    var g = '';
+    g += '<path d="M128 178 Q172 184 170 150 Q168 128 152 124" stroke="' + c.fur + '" stroke-width="11" fill="none" stroke-linecap="round"/>';
+    g += '<path d="M162 132 Q160 126 152 124" stroke="' + c.patch + '" stroke-width="11" fill="none" stroke-linecap="round"/>';
+    g += '<path d="M100 104 C131 104 141 150 139 172 Q137 185 100 185 Q63 185 61 172 C59 150 69 104 100 104 Z" fill="' + c.fur + '"/>';
+    g += '<ellipse cx="124" cy="164" rx="15" ry="18" fill="' + shade(c.fur, -0.07) + '"/>';
+    g += '<ellipse cx="124" cy="146" rx="9" ry="11" fill="' + c.patch + '"/>';
+    g += '<path d="M100 116 C114 118 116 150 108 172 L92 172 C84 150 86 118 100 116 Z" fill="' + BELLY + '" opacity=".75"/>';
+    g += '<rect x="85" y="140" width="11" height="44" rx="5.5" fill="' + c.fur + '"/><rect x="104" y="140" width="11" height="44" rx="5.5" fill="' + c.fur + '"/>';
+    g += '<ellipse cx="90.5" cy="183" rx="8" ry="4.5" fill="' + c.fur + '" stroke="' + shade(c.fur, -0.15) + '" stroke-width="1.5"/><ellipse cx="109.5" cy="183" rx="8" ry="4.5" fill="' + c.fur + '" stroke="' + shade(c.fur, -0.15) + '" stroke-width="1.5"/>';
+    return g;
+  }
+  function catCollar(c, gem) {
+    return '<path d="M82 108 Q100 120 118 108" stroke="' + c.collar + '" stroke-width="5" fill="none" stroke-linecap="round"/>' +
+      '<circle cx="100" cy="118" r="4.8" fill="' + (gem || '#f2c230') + '" stroke="' + shade(gem || '#f2c230', -0.25) + '" stroke-width="1.4"/>';
+  }
+  function catWings(big, A, B) {
+    if (!big) {
+      return '<g class="wing wing-l"><ellipse cx="66" cy="112" rx="26" ry="16" transform="rotate(-34 66 112)" fill="' + A + '" opacity=".92"/><ellipse cx="69" cy="113" rx="13" ry="6.5" transform="rotate(-34 69 113)" fill="#fff" opacity=".35"/><ellipse cx="72" cy="136" rx="14" ry="10" transform="rotate(30 72 136)" fill="' + B + '" opacity=".92"/></g>' +
+        '<g class="wing wing-r"><ellipse cx="134" cy="112" rx="26" ry="16" transform="rotate(34 134 112)" fill="' + A + '" opacity=".92"/><ellipse cx="131" cy="113" rx="13" ry="6.5" transform="rotate(34 131 113)" fill="#fff" opacity=".35"/><ellipse cx="128" cy="136" rx="14" ry="10" transform="rotate(-30 128 136)" fill="' + B + '" opacity=".92"/></g>';
+    }
+    function side(m) {
+      var x = function (v) { return 100 + m * (v - 100); };
+      var r = m < 0 ? -1 : 1;
+      return '<g class="wing ' + (m < 0 ? 'wing-l' : 'wing-r') + '">' +
+        '<path d="M' + x(98) + ' 116 C' + x(70) + ' 70 ' + x(20) + ' 56 ' + x(14) + ' 84 C' + x(10) + ' 108 ' + x(48) + ' 122 ' + x(98) + ' 122 Z" fill="' + A + '"/>' +
+        '<path d="M' + x(98) + ' 120 C' + x(60) + ' 120 ' + x(26) + ' 136 ' + x(40) + ' 158 C' + x(54) + ' 176 ' + x(84) + ' 152 ' + x(98) + ' 126 Z" fill="' + B + '"/>' +
+        '<path d="M' + x(96) + ' 118 Q' + x(60) + ' 92 ' + x(24) + ' 80 M' + x(96) + ' 120 Q' + x(56) + ' 106 ' + x(22) + ' 100 M' + x(96) + ' 124 Q' + x(66) + ' 138 ' + x(44) + ' 154" stroke="#fff" stroke-opacity=".35" stroke-width="1.6" fill="none"/>' +
+        '<circle cx="' + x(34) + '" cy="82" r="6" fill="' + B + '"/><circle cx="' + x(52) + '" cy="150" r="4.5" fill="#fff" opacity=".5"/>' +
+        '<circle cx="' + x(24) + '" cy="96" r="2.4" fill="#fff" opacity=".7"/></g>';
+    }
+    return side(-1) + side(1);
+  }
+
   function catSvg(stage, cycle, mood) {
     var c = CAT_COLORS[cycle % CAT_COLORS.length];
-    var k = [0.7, 0.8, 0.9, 0.95, 1][stage];
     var g = '';
-    if (stage === 4) g += sparkle(30, 40, 9, '#fff3b0') + sparkle(172, 52, 7, '#fff3b0') + sparkle(176, 168, 6, '#ffd6f2') + sparkle(22, 172, 6, '#ffd6f2');
-    g += '<g transform="translate(100 120) scale(' + k + ') translate(-100 -120)">';
-    if (stage === 3) g += catWings(false, c.A, c.B);
-    if (stage === 4) g += catWings(true, c.A, c.B);
-    // farok
-    g += '<path d="M132 168 Q172 166 168 128 Q166 112 152 112" stroke="' + c.fur + '" stroke-width="12" fill="none" stroke-linecap="round"/>';
-    g += '<path d="M160 116 Q166 112 152 112" stroke="' + c.patch + '" stroke-width="12" fill="none" stroke-linecap="round"/>';
-    // test
-    g += '<ellipse cx="100" cy="158" rx="40" ry="32" fill="' + c.fur + '"/>';
-    g += '<ellipse cx="100" cy="166" rx="22" ry="18" fill="#fff" opacity=".5"/>';
-    g += '<ellipse cx="124" cy="146" rx="12" ry="10" fill="' + c.patch + '" opacity=".9"/>';
-    g += '<ellipse cx="82" cy="186" rx="13" ry="9" fill="' + c.fur + '" stroke="' + c.patch + '" stroke-opacity=".4" stroke-width="2"/>';
-    g += '<ellipse cx="118" cy="186" rx="13" ry="9" fill="' + c.fur + '" stroke="' + c.patch + '" stroke-opacity=".4" stroke-width="2"/>';
-    g += '<path d="M78 186 v4 M82 186 v5 M86 186 v4 M114 186 v4 M118 186 v5 M122 186 v4" stroke="' + c.patch + '" stroke-opacity=".5" stroke-width="1.6" stroke-linecap="round"/>';
-    // fülek
-    g += '<path d="M60 84 L64 38 L96 62 Z" fill="' + c.fur + '" stroke="' + c.fur + '" stroke-width="6" stroke-linejoin="round"/>';
-    g += '<path d="M140 84 L136 38 L104 62 Z" fill="' + c.patch + '" stroke="' + c.patch + '" stroke-width="6" stroke-linejoin="round"/>';
-    g += '<path d="M68 72 L70 50 L86 62 Z" fill="#ffb3c7"/><path d="M132 72 L130 50 L114 62 Z" fill="#ffb3c7"/>';
-    // fej
-    g += '<ellipse cx="100" cy="94" rx="44" ry="38" fill="' + c.fur + '"/>';
-    g += '<path d="M118 60 Q140 66 142 92 Q130 84 118 82 Z" fill="' + c.patch + '" opacity=".9"/>';
-    g += '<ellipse cx="100" cy="112" rx="16" ry="11" fill="#fff" opacity=".7"/>';
-    // bajusz
-    g += '<path d="M70 108 h-20 M70 114 l-18 5 M130 108 h20 M130 114 l18 5" stroke="' + INK + '" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/>';
-    g += petEyes(100, 94, 1.45, mood, 17) + petCheeks(100, 108, 1.1, 26, mood);
-    g += '<path d="M96 104 Q100 101 104 104 Q102 108 100 108.5 Q98 108 96 104 Z" fill="#ff8fb1"/>';
-    g += catMouth(100, 110, 1.05, mood);
-    // masni
-    if (stage >= 2) {
-      g += '<g transform="translate(70 56) rotate(-18)"><path d="M0 0 L-13 -8 L-13 8 Z M0 0 L13 -8 L13 8 Z" fill="' + c.bow + '" stroke="' + c.bow + '" stroke-width="3" stroke-linejoin="round"/><circle r="4.5" fill="#fff" opacity=".85"/></g>';
+    if (stage === 0) {
+      g += shadowEl(34) + '<g class="pet-body">';
+      g += '<path d="M120 177 Q144 180 142 163 Q140 152 129 155" stroke="' + c.fur + '" stroke-width="9" fill="none" stroke-linecap="round"/>';
+      g += '<ellipse cx="100" cy="164" rx="29" ry="21" fill="' + c.fur + '"/>';
+      g += '<ellipse cx="100" cy="170" rx="16" ry="12" fill="' + BELLY + '" opacity=".75"/>';
+      g += '<ellipse cx="90" cy="183" rx="8" ry="4.5" fill="' + c.fur + '"/><ellipse cx="110" cy="183" rx="8" ry="4.5" fill="' + c.fur + '"/>';
+      g += catHead(100, 128, 1, c, mood, true);
+      g += '</g>' + petZzz(mood, 138, 86);
+    } else if (stage === 1) {
+      g += shadowEl(58) + '<g class="pet-body">';
+      g += '<path d="M146 146 Q172 132 168 104 Q166 92 156 96" stroke="' + c.fur + '" stroke-width="9" fill="none" stroke-linecap="round"/>';
+      g += '<path d="M162 100 Q162 94 156 96" stroke="' + c.patch + '" stroke-width="9" fill="none" stroke-linecap="round"/>';
+      g += '<ellipse cx="139" cy="160" rx="15" ry="18" fill="' + shade(c.fur, -0.06) + '"/>';
+      g += '<ellipse cx="144" cy="183" rx="9" ry="4.5" fill="' + c.fur + '"/>';
+      g += '<ellipse cx="112" cy="153" rx="38" ry="19" transform="rotate(-10 112 153)" fill="' + c.fur + '"/>';
+      g += '<ellipse cx="124" cy="146" rx="10" ry="8" fill="' + c.patch + '"/>';
+      g += '<ellipse cx="108" cy="162" rx="24" ry="8" transform="rotate(-10 108 162)" fill="' + BELLY + '" opacity=".7"/>';
+      g += '<path d="M84 160 L80 181 M96 163 L96 181" stroke="' + c.fur + '" stroke-width="10" stroke-linecap="round"/>';
+      g += '<ellipse cx="79" cy="183" rx="8" ry="4.5" fill="' + c.fur + '"/><ellipse cx="96" cy="183" rx="8" ry="4.5" fill="' + c.fur + '"/>';
+      g += catHead(70, 132, 0.92, c, mood, true);
+      g += '<circle cx="32" cy="173" r="11" fill="' + c.A + '"/><path d="M23 168 Q32 163 41 171 M23 176 Q32 171 41 179 M28 163 Q36 173 32 184" stroke="#fff" stroke-opacity=".45" stroke-width="1.6" fill="none"/>';
+      g += '<path d="M43 176 Q58 188 74 182" stroke="' + c.A + '" stroke-width="2" fill="none" stroke-linecap="round"/>';
+      g += '</g>' + petZzz(mood, 92, 80);
+    } else {
+      var lift = stage === 2 ? 0 : stage === 3 ? -10 : -18;
+      g += shadowEl(stage === 2 ? 46 : stage === 3 ? 36 : 30);
+      if (stage === 4) g += sparkle(26, 44, 8, '#fff3b0') + sparkle(174, 40, 6, '#fff3b0') + sparkle(180, 150, 5, '#ffd6f2') + sparkle(20, 140, 5, '#ffd6f2');
+      g += '<g class="pet-body"><g transform="translate(0 ' + lift + ')">';
+      if (stage >= 3) {
+        g += '<g class="aura"><circle cx="100" cy="128" r="' + (stage === 4 ? 84 : 66) + '" fill="' + c.A + '" opacity=".07"/><circle cx="100" cy="128" r="' + (stage === 4 ? 66 : 52) + '" fill="' + c.A + '" opacity=".08"/></g>';
+        g += catWings(stage === 4, c.A, c.B);
+      }
+      g += catAdultBody(c);
+      g += catHead(100, 86, 1, c, mood, false);
+      g += catCollar(c, stage === 4 ? '#ff9ed8' : null);
+      g += '</g></g>' + petZzz(mood, 140, 40);
     }
-    // gombolyag
-    if (stage === 1) {
-      g += '<circle cx="46" cy="178" r="15" fill="' + c.A + '"/><path d="M34 172 Q46 166 58 176 M34 182 Q46 176 58 186 M40 166 Q50 178 46 192" stroke="#fff" stroke-opacity=".45" stroke-width="2" fill="none"/>';
-      g += '<path d="M60 182 Q72 196 82 190" stroke="' + c.A + '" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
-    }
-    g += '</g>';
-    g += petZzz(mood, 150, 50);
     return g;
   }
 
+  /* --- oroszlán részei --- */
+  function maneRing(cx, cy, n, radius, r, color) {
+    var out = '';
+    for (var i = 0; i < n; i++) {
+      var a = (Math.PI * 2 * i) / n - Math.PI / 2;
+      out += '<circle cx="' + (cx + Math.cos(a) * radius).toFixed(1) + '" cy="' + (cy + Math.sin(a) * radius).toFixed(1) + '" r="' + r + '" fill="' + color + '"/>';
+    }
+    return out;
+  }
+  function lionHead(cx, cy, s, F, M, mood, mane, baby) {
+    var g = '';
+    if (mane === 1) {
+      g += maneRing(cx, cy + 2 * s, 11, 29 * s, 9 * s, M);
+      g += '<path d="M' + (cx - 10 * s) + ' ' + (cy - 26 * s) + ' l' + (4 * s) + ' ' + (-12 * s) + ' l' + (5 * s) + ' ' + (9 * s) + ' l' + (5 * s) + ' ' + (-11 * s) + ' l' + (4 * s) + ' ' + (12 * s) + ' Z" fill="' + M + '"/>';
+    } else if (mane === 2) {
+      g += maneRing(cx, cy + 3 * s, 15, 38 * s, 15 * s, shade(M, -0.18));
+      g += maneRing(cx, cy + 3 * s, 13, 30 * s, 13 * s, M);
+    } else if (mane === 3) {
+      g += maneRing(cx, cy + 3 * s, 17, 43 * s, 17 * s, shade(M, -0.3));
+      g += maneRing(cx, cy + 3 * s, 15, 35 * s, 14 * s, shade(M, -0.1));
+      g += maneRing(cx, cy + 3 * s, 12, 28 * s, 11 * s, M);
+    }
+    var earR = 9 * s;
+    if (mane < 2) {
+      g += '<circle cx="' + (cx - 23 * s) + '" cy="' + (cy - 19 * s) + '" r="' + earR + '" fill="' + F + '"/><circle cx="' + (cx + 23 * s) + '" cy="' + (cy - 19 * s) + '" r="' + earR + '" fill="' + F + '"/>';
+      g += '<circle cx="' + (cx - 23 * s) + '" cy="' + (cy - 19 * s) + '" r="' + (5 * s) + '" fill="#efa49c"/><circle cx="' + (cx + 23 * s) + '" cy="' + (cy - 19 * s) + '" r="' + (5 * s) + '" fill="#efa49c"/>';
+    }
+    g += '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + (28 * s) + '" ry="' + (26 * s) + '" fill="' + F + '"/>';
+    if (mane >= 2) {
+      g += '<circle cx="' + (cx - 21 * s) + '" cy="' + (cy - 21 * s) + '" r="' + (7.5 * s) + '" fill="' + F + '"/><circle cx="' + (cx + 21 * s) + '" cy="' + (cy - 21 * s) + '" r="' + (7.5 * s) + '" fill="' + F + '"/>';
+      g += '<circle cx="' + (cx - 21 * s) + '" cy="' + (cy - 21 * s) + '" r="' + (4 * s) + '" fill="#efa49c"/><circle cx="' + (cx + 21 * s) + '" cy="' + (cy - 21 * s) + '" r="' + (4 * s) + '" fill="#efa49c"/>';
+    }
+    g += '<ellipse cx="' + cx + '" cy="' + (cy + 11 * s) + '" rx="' + (15 * s) + '" ry="' + (10 * s) + '" fill="' + BELLY + '" opacity=".9"/>';
+    g += petEyes(cx, cy - 3 * s, (baby ? 1.2 : 1.05) * s, mood, (baby ? 12 : 11.5) * s);
+    if (baby) g += petCheeks(cx, cy + 7 * s, 0.9 * s, 19 * s, mood);
+    g += '<path d="M' + (cx - 6 * s) + ' ' + (cy + 4 * s) + ' Q' + cx + ' ' + (cy + 1 * s) + ' ' + (cx + 6 * s) + ' ' + (cy + 4 * s) + ' Q' + (cx + 3 * s) + ' ' + (cy + 10 * s) + ' ' + cx + ' ' + (cy + 10.5 * s) + ' Q' + (cx - 3 * s) + ' ' + (cy + 10 * s) + ' ' + (cx - 6 * s) + ' ' + (cy + 4 * s) + ' Z" fill="#6b3b2a"/>';
+    g += petMouth(cx, cy + 13 * s, 0.8 * s, mood);
+    return g;
+  }
+  function lionTail(F, M, up) {
+    if (up) return '<path d="M146 146 Q172 130 168 102" stroke="' + F + '" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="168" cy="98" r="8" fill="' + M + '"/>';
+    return '<path d="M130 178 Q170 182 168 148" stroke="' + F + '" stroke-width="9" fill="none" stroke-linecap="round"/><ellipse cx="168" cy="142" rx="8" ry="10" fill="' + M + '"/>';
+  }
+  function lionAdultBody(F, M, w) {
+    var x = function (v) { return 100 + (v - 100) * w; };
+    var g = lionTail(F, M, false);
+    g += '<path d="M100 104 C' + x(133) + ' 104 ' + x(143) + ' 150 ' + x(141) + ' 172 Q' + x(139) + ' 185 100 185 Q' + x(61) + ' 185 ' + x(59) + ' 172 C' + x(57) + ' 150 ' + x(67) + ' 104 100 104 Z" fill="' + F + '"/>';
+    g += '<ellipse cx="' + x(125) + '" cy="164" rx="' + (16 * w) + '" ry="18" fill="' + shade(F, -0.08) + '"/>';
+    g += '<path d="M100 118 C114 120 117 150 108 172 L92 172 C83 150 86 120 100 118 Z" fill="' + BELLY + '" opacity=".55"/>';
+    g += '<rect x="' + (x(90.5) - 6) + '" y="140" width="12" height="44" rx="6" fill="' + F + '"/><rect x="' + (x(109.5) - 6) + '" y="140" width="12" height="44" rx="6" fill="' + F + '"/>';
+    g += '<ellipse cx="' + x(90.5) + '" cy="183" rx="9" ry="5" fill="' + F + '" stroke="' + shade(F, -0.2) + '" stroke-width="1.5"/><ellipse cx="' + x(109.5) + '" cy="183" rx="9" ry="5" fill="' + F + '" stroke="' + shade(F, -0.2) + '" stroke-width="1.5"/>';
+    return g;
+  }
   function lionSvg(stage, cycle, mood) {
     var c = LION_COLORS[cycle % LION_COLORS.length], F = c[0], M = c[1];
-    var k = [0.66, 0.78, 0.88, 0.95, 1][stage];
-    var g = '<g transform="translate(100 118) scale(' + k + ') translate(-100 -118)">';
-    // farok
-    if (stage >= 1) {
-      g += '<path d="M138 158 Q170 150 166 118" stroke="' + F + '" stroke-width="9" fill="none" stroke-linecap="round"/>';
-      g += '<circle cx="166" cy="114" r="' + (stage >= 3 ? 11 : 8) + '" fill="' + M + '"/>';
-    }
-    // test
-    g += '<ellipse cx="100" cy="156" rx="46" ry="34" fill="' + F + '"/>';
-    g += '<ellipse cx="100" cy="164" rx="26" ry="20" fill="#fff4e0" opacity=".55"/>';
-    if (stage <= 1) {
-      g += '<circle cx="74" cy="146" r="4" fill="' + M + '" opacity=".35"/><circle cx="126" cy="150" r="4.5" fill="' + M + '" opacity=".35"/><circle cx="118" cy="138" r="3" fill="' + M + '" opacity=".35"/>';
-    }
-    g += '<ellipse cx="80" cy="186" rx="15" ry="9" fill="' + F + '" stroke="' + M + '" stroke-opacity=".35" stroke-width="2"/>';
-    g += '<ellipse cx="120" cy="186" rx="15" ry="9" fill="' + F + '" stroke="' + M + '" stroke-opacity=".35" stroke-width="2"/>';
-    // sörény
-    function ring(n, radius, r, color) {
-      var out = '';
-      for (var i = 0; i < n; i++) {
-        var a = (Math.PI * 2 * i) / n;
-        out += '<circle cx="' + (100 + Math.cos(a) * radius).toFixed(1) + '" cy="' + (92 + Math.sin(a) * radius).toFixed(1) + '" r="' + r + '" fill="' + color + '"/>';
+    var spot = shade(F, -0.16);
+    var g = '';
+    if (stage === 0) {
+      g += shadowEl(34) + '<g class="pet-body">';
+      g += '<path d="M120 177 Q146 178 144 160" stroke="' + F + '" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="144" cy="157" r="5" fill="' + M + '"/>';
+      g += '<ellipse cx="100" cy="164" rx="29" ry="21" fill="' + F + '"/>';
+      g += '<ellipse cx="100" cy="170" rx="16" ry="12" fill="' + BELLY + '" opacity=".6"/>';
+      g += '<circle cx="80" cy="158" r="3" fill="' + spot + '" opacity=".7"/><circle cx="120" cy="160" r="3.4" fill="' + spot + '" opacity=".7"/><circle cx="114" cy="150" r="2.4" fill="' + spot + '" opacity=".7"/>';
+      g += '<ellipse cx="90" cy="183" rx="8" ry="4.5" fill="' + F + '"/><ellipse cx="110" cy="183" rx="8" ry="4.5" fill="' + F + '"/>';
+      g += lionHead(100, 128, 1, F, M, mood, 0, true);
+      g += '</g>' + petZzz(mood, 136, 88);
+    } else if (stage === 1) {
+      g += shadowEl(58) + '<g class="pet-body">';
+      g += lionTail(F, M, true);
+      g += '<ellipse cx="139" cy="160" rx="15" ry="18" fill="' + shade(F, -0.07) + '"/>';
+      g += '<ellipse cx="144" cy="183" rx="9" ry="4.5" fill="' + F + '"/>';
+      g += '<ellipse cx="112" cy="153" rx="38" ry="19" transform="rotate(-10 112 153)" fill="' + F + '"/>';
+      g += '<ellipse cx="108" cy="162" rx="24" ry="8" transform="rotate(-10 108 162)" fill="' + BELLY + '" opacity=".55"/>';
+      g += '<circle cx="118" cy="146" r="3.4" fill="' + spot + '" opacity=".7"/><circle cx="132" cy="150" r="3" fill="' + spot + '" opacity=".7"/><circle cx="104" cy="148" r="2.6" fill="' + spot + '" opacity=".7"/>';
+      g += '<path d="M84 160 L80 181 M96 163 L96 181" stroke="' + F + '" stroke-width="11" stroke-linecap="round"/>';
+      g += '<ellipse cx="79" cy="183" rx="8.5" ry="4.5" fill="' + F + '"/><ellipse cx="96" cy="183" rx="8.5" ry="4.5" fill="' + F + '"/>';
+      g += lionHead(70, 132, 0.95, F, M, mood, 0, true);
+      g += '</g>' + petZzz(mood, 92, 82);
+    } else if (stage === 2) {
+      g += shadowEl(46) + '<g class="pet-body">';
+      g += lionAdultBody(F, M, 1);
+      g += lionHead(100, 86, 1, F, M, mood, 1, false);
+      g += '</g>' + petZzz(mood, 140, 40);
+    } else if (stage === 3) {
+      g += shadowEl(52) + '<g class="pet-body">';
+      g += lionAdultBody(F, M, 1.12);
+      g += '<path d="M90 112 L100 134 L110 112 Z" fill="' + M + '"/>';
+      g += lionHead(100, 84, 1.05, F, M, mood, 2, false);
+      g += '</g>' + petZzz(mood, 146, 30);
+    } else {
+      var rays = '';
+      for (var i = 0; i < 12; i++) {
+        var a = (Math.PI * 2 * i) / 12;
+        var x1 = 100 + Math.cos(a - 0.07) * 88, y1 = 92 + Math.sin(a - 0.07) * 88, x2 = 100 + Math.cos(a + 0.07) * 88, y2 = 92 + Math.sin(a + 0.07) * 88;
+        rays += '<path d="M100 92 L' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' L' + x2.toFixed(1) + ' ' + y2.toFixed(1) + ' Z" fill="#ffe08a" opacity=".16"/>';
       }
-      return out;
+      g += '<g class="aura"><circle cx="100" cy="92" r="70" fill="#ffe08a" opacity=".06"/>' + rays + '</g>';
+      g += shadowEl(60);
+      g += '<rect x="46" y="166" width="108" height="20" rx="8" fill="#4b5260"/><rect x="52" y="166" width="96" height="5" rx="2.5" fill="#636c7d"/>';
+      g += '<g class="pet-body"><g transform="translate(0 -18)">';
+      g += lionAdultBody(F, M, 1.14);
+      g += '<path d="M88 112 L100 136 L112 112 Z" fill="' + shade(M, -0.1) + '"/>';
+      g += '<path d="M92 112 L100 130 L108 112" stroke="#c0392b" stroke-width="5" fill="none" stroke-linejoin="round"/>';
+      g += '<circle cx="100" cy="134" r="8" fill="#f2c230" stroke="#c99a12" stroke-width="2"/><circle cx="100" cy="134" r="3.2" fill="#fff3b0"/>';
+      g += lionHead(100, 82, 1.08, F, M, mood, 3, false);
+      g += '</g></g>' + petZzz(mood, 150, 26);
     }
-    if (stage === 1) g += '<circle cx="92" cy="56" r="7" fill="' + M + '"/><circle cx="102" cy="53" r="8" fill="' + M + '"/><circle cx="111" cy="57" r="6" fill="' + M + '"/>';
-    if (stage === 2) g += ring(12, 38, 13, M);
-    if (stage === 3) g += ring(14, 44, 17, M);
-    if (stage === 4) g += ring(16, 52, 20, M) + ring(12, 40, 16, M);
-    // fülek
-    var earY = stage >= 3 ? 58 : 64;
-    g += '<circle cx="70" cy="' + earY + '" r="13" fill="' + F + '"/><circle cx="130" cy="' + earY + '" r="13" fill="' + F + '"/>';
-    g += '<circle cx="70" cy="' + earY + '" r="7" fill="#f2a7a0"/><circle cx="130" cy="' + earY + '" r="7" fill="#f2a7a0"/>';
-    // fej
-    g += '<circle cx="100" cy="94" r="38" fill="' + F + '"/>';
-    g += '<ellipse cx="100" cy="112" rx="19" ry="13" fill="#fff4e0"/>';
-    g += '<path d="M93 104 Q100 100 107 104 Q104 111 100 112 Q96 111 93 104 Z" fill="#6b3b2a"/>';
-    g += petEyes(100, 90, 1.25, mood, 15) + petCheeks(100, 104, 1.1, 24, mood) + petMouth(100, 116, 1.05, mood);
-    if (stage === 4) {
-      // súlyzó a vasoroszlánnak
-      g += '<g transform="translate(156 184) rotate(-14) scale(.82)"><rect x="-22" y="-3" width="44" height="6" rx="3" fill="#9aa3ad"/>' +
-        '<rect x="-30" y="-12" width="9" height="24" rx="3" fill="#4a525c"/><rect x="21" y="-12" width="9" height="24" rx="3" fill="#4a525c"/>' +
-        '<rect x="-36" y="-8" width="6" height="16" rx="2" fill="#4a525c"/><rect x="30" y="-8" width="6" height="16" rx="2" fill="#4a525c"/></g>';
-    }
-    g += '</g>';
-    g += petZzz(mood, 150, 56);
     return g;
   }
 
   function petSvg(type, stage, cycle, mood, cls) {
     var inner = type === 'lion' ? lionSvg(stage, cycle, mood) : catSvg(stage, cycle, mood);
-    return '<svg class="pet-svg ' + (cls || '') + ' mood-' + mood + '" viewBox="0 0 200 200" role="img" aria-hidden="true">' + inner + '</svg>';
+    return '<svg class="pet-svg st-' + stage + ' ' + (cls || '') + ' mood-' + mood + '" viewBox="0 0 200 200" role="img" aria-hidden="true">' + inner + '</svg>';
   }
 
   /* ---------- Állatkák: fejlődés ---------- */

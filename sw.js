@@ -1,5 +1,5 @@
 // Vasnapló offline cache
-const CACHE = 'vasnaplo-v5';
+const CACHE = 'vasnaplo-v7';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
