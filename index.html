@@ -572,6 +572,52 @@ input:focus { border-color: var(--accent); outline: none; }
   .scene-sky i:nth-child(3n) { animation-delay: 2.1s; }
   @keyframes twinkle { 0%, 100% { opacity: .15; } 50% { opacity: .7; } }
 }
+
+/* Simogatás és szurkolás */
+.actor-art.pettable { cursor: pointer; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; border-radius: 16px; }
+.actor-art.pettable:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.actor-art svg { transform-origin: 50% 92%; transition: transform .25s ease; }
+.actor-art.pressing svg { transform: scale(.94); }
+.hearts { position: absolute; left: 50%; top: 34%; width: 0; height: 0; pointer-events: none; z-index: 3; }
+.hearts i { position: absolute; left: -9px; top: 0; color: #ff6fa8; font-style: normal; font-size: calc(20px * var(--s)); line-height: 1; opacity: 0; }
+.pet-say { position: absolute; left: 0; top: -54px; transform: translateX(-50%); white-space: nowrap; font-size: .8rem; font-weight: 600; color: var(--fg); background: var(--surface-2); padding: 3px 10px; border-radius: 99px; }
+.fly-emoji { position: absolute; left: 50%; top: 40%; font-size: 2.4rem; line-height: 1; pointer-events: none; z-index: 3; transform: translate(-50%, 0); }
+.bubble { position: absolute; left: 50%; top: 0; transform: translateX(-50%); z-index: 2; width: max-content; max-width: 160px; background: var(--fg); color: var(--bg); border-radius: 14px; padding: 6px 10px; text-align: center; font-size: .82rem; line-height: 1.25; box-shadow: 0 4px 14px rgba(0, 0, 0, .35); }
+.bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: var(--fg); }
+.bubble b { font-weight: 700; }
+.bubble small { display: block; font-size: .68rem; opacity: .7; }
+.scene-hint { margin: 10px 0 0; text-align: center; font-size: .78rem; color: var(--muted); }
+.sheet-back { position: fixed; inset: 0; z-index: 45; background: rgba(5, 4, 8, .55); opacity: 0; transition: opacity .2s ease; }
+.sheet-back.on { opacity: 1; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto; background: var(--surface); border-radius: 22px 22px 0 0;
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  display: flex; flex-direction: column; gap: 8px; transform: translateY(100%); transition: transform .25s cubic-bezier(.2, .9, .3, 1); }
+.sheet-back.on .sheet { transform: none; }
+.sheet-grip { width: 40px; height: 5px; border-radius: 99px; background: var(--line); margin: 0 auto 6px; }
+.sheet h2 { font-size: 1.4rem; }
+.sheet .note { margin: 0 0 4px; }
+.sheet-opt { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 0 14px; border-radius: 14px; background: var(--surface-2); font-weight: 600; font-size: 1.05rem; text-align: left; }
+.sheet-opt:active { filter: brightness(1.15); }
+.sheet-emoji { font-size: 1.5rem; width: 32px; text-align: center; }
+.sheet-cancel { margin-top: 4px; }
+.cheer-modal { align-items: center; text-align: center; }
+.cheer-emoji { font-size: 3.4rem; line-height: 1; }
+.cheer-text { font-family: var(--font-display); font-size: 1.35rem; margin: 0; color: var(--fg); }
+@media (prefers-reduced-motion: no-preference) {
+  .pet-svg.petted { animation: petted .6s cubic-bezier(.3, 1.6, .5, 1); }
+  .hearts i { animation: heartup 1.4s ease-out var(--d) forwards; }
+  .pet-say { animation: sayup 1.6s ease-out forwards; }
+  .fly-emoji { animation: flyup 1.4s ease-out forwards; }
+  .cheer-modal .cheer-emoji { animation: cheerpop .6s cubic-bezier(.2, 1.6, .4, 1) both; }
+  @keyframes petted { 0% { transform: scale(1); } 30% { transform: scale(1.08, .92); } 60% { transform: scale(.96, 1.05); } 100% { transform: scale(1); } }
+  @keyframes heartup { 0% { opacity: 0; transform: translate(0, 10px) scale(.5); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), -80px) scale(1); } }
+  @keyframes sayup { 0% { opacity: 0; transform: translate(-50%, 6px); } 20%, 75% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -6px); } }
+  @keyframes flyup { 0% { opacity: 0; transform: translate(-50%, 0) scale(.5); } 25% { opacity: 1; transform: translate(-50%, -20px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -90px) scale(1); } }
+  @keyframes cheerpop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hearts i { opacity: 1; transform: translate(var(--x), -40px); }
+}
 </style>
 </head>
 <body>
@@ -1333,9 +1379,11 @@ input:focus { border-color: var(--accent); outline: none; }
       syncing = false;
       save();
       var typing = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
-      if ((view === 'social' || (view === 'home' && evChanged)) && !typing && !document.querySelector('[data-armed="1"]') && !document.querySelector('.evo-back')) render();
+      if ((view === 'social' || (view === 'home' && evChanged)) && !typing && Date.now() > uiBusyUntil && !document.querySelector('.sheet-back') && !document.querySelector('[data-armed="1"]') && !document.querySelector('.evo-back')) render();
       checkNotify();
+      checkCheers();
       checkPets();
+      checkPetted();
     });
   }
 
@@ -1379,7 +1427,9 @@ input:focus { border-color: var(--accent); outline: none; }
       m.remove();
       if (btn.dataset.m === 'go' && view !== 'workout') go('social');
       checkNotify();
+      checkCheers();
       checkPets();
+      checkPetted();
     });
     document.body.appendChild(m);
     var first = m.querySelector('[data-m="go"]');
@@ -1411,8 +1461,15 @@ input:focus { border-color: var(--accent); outline: none; }
   }
 
   var scTab = null;
-  function actorArt(p) {
-    return '<div class="actor-art">' + petSvg(p.type, p.stage, p.cycle, p.mood, 'idle') + '</div>';
+  function actorArt(p, who, mine, name, evs) {
+    var bubble = '';
+    if (mine) {
+      var c = evs.filter(function (e) { return e.kind === 'cheer' && e.who !== APP_ID && (Date.now() - new Date(e.created_at).getTime()) < 864e5; })[0];
+      if (c) bubble = '<div class="bubble"><b>' + esc(c.label) + '</b><small>' + esc(c.name || name) + '</small></div>';
+    }
+    var hint = mine ? 'Az állatkád. Koppints rá a simogatáshoz.' : esc(name) + ' állatkája. Koppints rá a simogatáshoz, tartsd nyomva a szurkoláshoz.';
+    return '<div class="actor-art pettable" tabindex="0" role="button" aria-label="' + hint + '" data-who="' + esc(who) + '" data-name="' + esc(name) + '">' +
+      petSvg(p.type, p.stage, p.cycle, p.mood, 'idle') + bubble + '</div>';
   }
   function actorInfo(p, label, pts, week, mine, name) {
     var pct = Math.round(((p.within - PET_STEPS[p.stage]) / (p.next - PET_STEPS[p.stage])) * 100);
@@ -1431,11 +1488,13 @@ input:focus { border-color: var(--accent); outline: none; }
     var them = partnerWho ? petState(evs, partnerWho) : null;
     var h = '<section class="scene" aria-label="Állatkák">';
     h += '<div class="scene-sky" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>';
-    h += '<div class="scene-arts">' + actorArt(me) + (them ? actorArt(them) : '<div class="actor-art ghost"><span>?</span></div>') + '</div>';
+    h += '<div class="scene-arts">' + actorArt(me, APP_ID, true, pName, evs) + (them ? actorArt(them, partnerWho, false, pName, evs) : '<div class="actor-art ghost"><span>?</span></div>') + '</div>';
     h += '<div class="scene-info">' + actorInfo(me, state.social.name + ' (te)', myPts, weekCount(evs, APP_ID), true, '');
     if (them) h += actorInfo(them, pName, pPts, weekCount(evs, partnerWho), false, pName);
     else h += '<div class="actor"><span class="actor-name">Párod</span><span class="pet-next">Az állatkája akkor jelenik meg, amikor csatlakozik.</span></div>';
-    h += '</div></section>';
+    h += '</div>';
+    if (them && !state.social.hintDone) h += '<p class="scene-hint">Koppints a párod állatkájára a simogatáshoz, tartsd nyomva a szurkoláshoz.</p>';
+    h += '</section>';
     return h;
   }
   function segBtn(id, label, count, active) {
@@ -1509,6 +1568,8 @@ input:focus { border-color: var(--accent); outline: none; }
           var mine = e.who === APP_ID;
           var who = e.name || pName;
           var txt = e.kind === 'join' ? (mine ? 'Csatlakoztál a közös részhez' : who + ' csatlakozott a közös részhez')
+            : e.kind === 'pet' ? (mine ? 'Megsimogattad ' + pName + ' ' + petObj(partnerWho ? petType(partnerWho) : 'cat', false) : who + ' megsimogatta ' + petObj(petType(APP_ID), true)) + ' 💕'
+            : e.kind === 'cheer' ? (mine ? 'Szurkoltál: ' : who + ' szurkolt neked: ') + e.label
             : e.kind === 'workout' ? (mine ? 'Edzettél: ' : who + ' edzett: ') + e.label
             : e.kind === 'redeem' ? (mine ? 'Beváltottad: ' : who + ' beváltotta: ') + e.label
             : e.kind === 'revoke' ? (mine ? 'Töröltél egy edzést: ' : who + ' törölt egy edzést: ') + e.label
@@ -2065,6 +2126,8 @@ input:focus { border-color: var(--accent); outline: none; }
         o.remove();
         if (view === 'social' || view === 'home') render();
         checkPets();
+        checkCheers();
+        checkPetted();
       }, 250);
     });
   }
@@ -2083,6 +2146,189 @@ input:focus { border-color: var(--accent); outline: none; }
       if (i % 3 === 0) s.className = 'round';
       host.appendChild(s);
     }
+  }
+
+  /* ---------- Simogatás és szurkolás ---------- */
+  var CHEERS = [
+    ['hajra', '💪', 'Hajrá!'],
+    ['durva', '🔥', 'Durva voltál!'],
+    ['buszke', '❤️', 'Büszke vagyok rád'],
+    ['tovabb', '👏', 'Csak így tovább']
+  ];
+  var uiBusyUntil = 0;
+  function petObj(type, mine) {
+    if (type === 'lion') return mine ? 'az oroszlánodat' : 'oroszlánját';
+    return mine ? 'a cicádat' : 'cicáját';
+  }
+  function heartsAt(art, say) {
+    if (!art) return;
+    uiBusyUntil = Date.now() + 1800;
+    var box = document.createElement('div');
+    box.className = 'hearts';
+    for (var i = 0; i < 7; i++) {
+      var hEl = document.createElement('i');
+      hEl.textContent = '❤';
+      hEl.style.setProperty('--x', (Math.random() * 70 - 35).toFixed(0) + 'px');
+      hEl.style.setProperty('--d', (i * 90) + 'ms');
+      hEl.style.setProperty('--s', (0.8 + Math.random() * 0.6).toFixed(2));
+      box.appendChild(hEl);
+    }
+    if (say) {
+      var t = document.createElement('span');
+      t.className = 'pet-say';
+      t.textContent = say;
+      box.appendChild(t);
+    }
+    art.appendChild(box);
+    var svg = art.querySelector('svg');
+    if (svg) { svg.classList.remove('petted'); void svg.getBoundingClientRect(); svg.classList.add('petted'); }
+    setTimeout(function () { box.remove(); if (svg) svg.classList.remove('petted'); }, 1800);
+  }
+  function petAction(who) {
+    var art = document.querySelector('.actor-art[data-who="' + who + '"]');
+    heartsAt(art, petType(who) === 'lion' ? 'elégedetten morog' : 'dorombol');
+    try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+    if (who === APP_ID) return;
+    var last = state.social.lastPetSent || 0;
+    if (Date.now() - last > 30 * 60 * 1000) {
+      state.social.lastPetSent = Date.now();
+      queueEvent({ kind: 'pet', points: 0, label: 'simogatás', ref: who });
+    }
+  }
+  function flyEmoji(art, emoji) {
+    if (!art) return;
+    uiBusyUntil = Date.now() + 1600;
+    var f = document.createElement('span');
+    f.className = 'fly-emoji';
+    f.textContent = emoji;
+    art.appendChild(f);
+    setTimeout(function () { f.remove(); }, 1500);
+  }
+  function openCheerSheet(who, name) {
+    if (document.querySelector('.sheet-back')) return;
+    var o = document.createElement('div');
+    o.className = 'sheet-back';
+    o.innerHTML = '<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t">' +
+      '<div class="sheet-grip" aria-hidden="true"></div>' +
+      '<h2 id="sheet-t">Szurkolj neki!</h2>' +
+      '<p class="note">' + esc(name) + ' egy napig látni fogja az állatkája fölött.</p>' +
+      CHEERS.map(function (c) {
+        return '<button class="sheet-opt" data-c="' + c[0] + '"><span class="sheet-emoji">' + c[1] + '</span>' + esc(c[2]) + '</button>';
+      }).join('') +
+      '<button class="btn btn-ghost sheet-cancel" data-c="">Mégse</button></div>';
+    function close() {
+      o.classList.remove('on');
+      setTimeout(function () { o.remove(); }, 220);
+    }
+    o.addEventListener('click', function (ev) {
+      if (ev.target === o) { close(); return; }
+      var btn = ev.target.closest('[data-c]');
+      if (!btn) return;
+      var c = CHEERS.filter(function (x) { return x[0] === btn.dataset.c; })[0];
+      close();
+      if (!c) return;
+      queueEvent({ kind: 'cheer', points: 0, label: c[1] + ' ' + c[2], ref: c[0] });
+      flyEmoji(document.querySelector('.actor-art[data-who="' + who + '"]'), c[1]);
+      toast('Elküldve: ' + c[2]);
+    });
+    document.body.appendChild(o);
+    requestAnimationFrame(function () { o.classList.add('on'); });
+    var first = o.querySelector('.sheet-opt');
+    if (first) first.focus();
+  }
+
+  // koppintás = simogatás, nyomva tartás = szurkolás
+  var press = null;
+  app.addEventListener('pointerdown', function (e) {
+    var art = e.target.closest('.actor-art[data-who]');
+    if (!art || (e.button !== undefined && e.button !== 0)) return;
+    var who = art.dataset.who;
+    press = { who: who, x: e.clientX, y: e.clientY, long: false, art: art };
+    art.classList.add('pressing');
+    press.t = setTimeout(function () {
+      if (!press) return;
+      press.long = true;
+      art.classList.remove('pressing');
+      if (who === APP_ID) return;
+      try { if (navigator.vibrate) navigator.vibrate(25); } catch (er) {}
+      if (!state.social.hintDone) { state.social.hintDone = true; save(); }
+      openCheerSheet(who, art.dataset.name || 'A párod');
+    }, 450);
+  });
+  function endPress(cancel) {
+    if (!press) return;
+    clearTimeout(press.t);
+    press.art.classList.remove('pressing');
+    var p = press;
+    press = null;
+    if (!cancel && !p.long) petAction(p.who);
+  }
+  app.addEventListener('pointerup', function () { endPress(false); });
+  app.addEventListener('pointercancel', function () { endPress(true); });
+  app.addEventListener('pointermove', function (e) {
+    if (press && (Math.abs(e.clientX - press.x) > 10 || Math.abs(e.clientY - press.y) > 10)) endPress(true);
+  });
+  app.addEventListener('contextmenu', function (e) { if (e.target.closest('.actor-art[data-who]')) e.preventDefault(); });
+  app.addEventListener('keydown', function (e) {
+    var art = e.target.closest && e.target.closest('.actor-art[data-who]');
+    if (!art || (e.key !== 'Enter' && e.key !== ' ')) return;
+    e.preventDefault();
+    if (e.shiftKey && art.dataset.who !== APP_ID) openCheerSheet(art.dataset.who, art.dataset.name || 'A párod');
+    else petAction(art.dataset.who);
+  });
+
+  // kapott szurkolás: felugró ablak egyszer
+  function checkCheers() {
+    if (!SUPA_URL || !state.social || !state.social.name) return;
+    if (view === 'workout' || document.getElementById('sc-modal') || document.querySelector('.evo-back')) return;
+    if (!Array.isArray(state.social.seenCheers)) state.social.seenCheers = [];
+    var seen = state.social.seenCheers;
+    var fresh = allEvents().filter(function (e) {
+      return e.kind === 'cheer' && e.who !== APP_ID && seen.indexOf(e.id) < 0 && (Date.now() - new Date(e.created_at).getTime()) < 3 * 864e5;
+    });
+    if (!fresh.length) return;
+    var e = fresh[fresh.length - 1];
+    var sp = String(e.label || '').indexOf(' ');
+    var emoji = sp > 0 ? e.label.slice(0, sp) : '💪';
+    var text = sp > 0 ? e.label.slice(sp + 1) : e.label;
+    var m = document.createElement('div');
+    m.id = 'sc-modal';
+    m.className = 'modal-back';
+    m.setAttribute('role', 'dialog');
+    m.setAttribute('aria-modal', 'true');
+    m.setAttribute('aria-labelledby', 'sc-modal-t');
+    m.innerHTML = '<div class="modal cheer-modal"><div class="cheer-emoji" aria-hidden="true">' + esc(emoji) + '</div><div class="eyebrow">Szurkolás</div>' +
+      '<h2 id="sc-modal-t">' + esc(e.name || 'A párod') + ' szurkol neked!</h2>' +
+      '<p class="cheer-text">„' + esc(text) + '”</p>' +
+      '<button class="btn btn-primary" data-m="ok">Köszi! ❤️</button></div>';
+    m.addEventListener('click', function (ev) {
+      if (!ev.target.closest('[data-m]')) return;
+      state.social.seenCheers.push(e.id);
+      save();
+      m.remove();
+      if (view === 'social') render();
+      checkNotify();
+      checkCheers();
+      checkPets();
+      checkPetted();
+    });
+    document.body.appendChild(m);
+    var b = m.querySelector('[data-m]');
+    if (b) b.focus();
+  }
+
+  // kapott simogatás: szívecskék a saját állatkán
+  function checkPetted() {
+    if (!SUPA_URL || !state.social || !state.social.name || view !== 'social') return;
+    if (document.getElementById('sc-modal') || document.querySelector('.evo-back')) return;
+    var lastTs = state.social.seenPetTs || '';
+    var fresh = allEvents().filter(function (e) { return e.kind === 'pet' && e.who !== APP_ID && !e.pending && e.created_at > lastTs; });
+    if (!fresh.length) return;
+    state.social.seenPetTs = fresh[0].created_at;
+    save();
+    var art = document.querySelector('.actor-art[data-who="' + APP_ID + '"]');
+    setTimeout(function () { heartsAt(art, ''); }, 250);
+    toast((fresh[0].name || 'A párod') + ' megsimogatta ' + petObj(petType(APP_ID), true) + ' 💕' + (fresh.length > 1 ? ' (' + fresh.length + '×)' : ''));
   }
 
   function render() {
@@ -2153,7 +2399,7 @@ input:focus { border-color: var(--accent); outline: none; }
       save(); render();
       toast(added + ' edzés és ' + (data.weights || []).length + ' mérés betöltve');
     } else if (act === 'tab-social') {
-      go('social'); sync();
+      go('social'); sync(); setTimeout(function () { checkCheers(); checkPetted(); }, 300);
     } else if (act === 'sc-tab') {
       scTab = b.dataset.t; render();
     } else if (act === 'push-on') {
